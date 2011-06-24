@@ -1,0 +1,112 @@
+0.0.6 -
+	- SQL tables and queries restructured and optimized. As a result, 0.0.6 is incompatable with databases made by previous versions of MGEMod.
+	- Improved string sanitation.
+
+0.0.5 - April 9th, 2011
+	Features:
+	- mgemod_hide_rating: disables the in-game display of ELO rating. Players must visit a website running the MGEStats WebUI to view their stats.
+		- "top5" and "rank" still function in-game, but do not show ELO ratings.
+	- MGEMod can now automatically detect errors in the database connection and disable stats to prevent data loss. (Experimental)
+		- "mgemod_reconnect_interval" controls how long (in minutes) MGEMod should wait before retrying the database connection after it has detected an error.
+		- Upon a successful reconnect, stats will be re-enabled.
+	- In-game command "hidehud" has been added at the request of the community.
+		- Toggles the display of the text overlay elements on and off. Type "!hidehud" in chat to use.
+
+	Configuration:
+	- The default setting for "mgemod_dbconfig" is now "mgemod" instead of "default".
+		- If you used a custom database configuration (tf/addons/sourcemod/configs/databases.cfg) and had it named "default", then you should rename it to "mgemod".
+		- If you have no idea what a custom database configuration is, then you should not need to worry about this (MGEMod will automatically use the local database).
+	- Added new cvar "mgemod_stats" to enable/disable stats on the fly.
+		- Setting "mgemod_dbconfig" to "" will no longer disable stats. Use this new cvar instead.
+
+	Optimization:
+	- Removed code that controlled custom (quake) sounds.
+
+	WebUI:
+	- Slight appearance tweaks.
+
+	Fixes:
+	- When a player spawns, they now will always spawn with their primary weapon equipped.
+	- Fixed some error logging that would cause itself to error when called.
+	- Fixed several cases where the plugin would attempt to communicate with a database when it shouldn't have been allowed to.
+	- Fixed a bug where a specific player's Steam ID would somehow get a single quote appended to it, causing SQL queries to fail.
+
+0.0.4 - December 13, 2010
+	Balance:
+	- When a player changes classes in a duel, their opponent will recieve full health, in addition to the point they already recieve.
+
+	Commands:
+	- !top5 now uses a menu display, and properly displays names.
+	- !add now supports arguments. Enter the number or partial/full name of the arena to join to immediately join it and bypass the menu.
+		- Example: !add 1 will add you to the first arena as shown on the menu, which for mge_training_v3 is Viaduct Middle.
+		- Example: !add via and !add Viaduct Middle will take you directly to Viaduct Middle.
+		- If multiple matches (argument too vague) or no matches are found, the menu will display.
+	+ Added !first chat command to automatically place players in the quickest available arena.
+		- Searches for arenas with one player.
+		- If none are found, searches for arenas with no players.
+		- If none are found, displays the menu.
+	+ Added !mgehelp chat command to print a list of MGEMod commands to console.
+
+	Configuration:
+	- Changed config file structure. Spawns are in mgemod_spawns.cfg, and weapon declarations (for stat tracking) are in mgemod_stats.cfg.
+		- Both of these files can be found in 'tf/addons/sourcemod/configs/'
+	- The map names in mgemod_spawns.cfg are no longer case sensitive.
+	- AutoCvar now also sets mp_tournament 0.
+	- Changed how early leavers are handled. It is now defined per-arena in mgemod_spawns.cfg
+		-If a player leaves an arena when their opponent has more points than them, AND their opponents score is higher than
+		the number defined by "earlyleave", then the leaver loses points and their opponent gains points.
+	- HUD Health text is now set per-arena in mgemod_spawns.cfg by "showhp", it is also color-coded:
+		- > 66% = Green
+		- >= 33% = Yellow
+		- < 33% = Red
+	- Infinite Ammo is now set per-arena in mgemod_spawns.cfg by "infammo".
+	- Arenas with respawns can now have their respawn delays changed via "respawntime" in mgemod_spawns.cfg
+	+ Added spawn distance protection:
+		- If a spawn point is within x amount of units (set per-arena in mgemod_spawns.cfg by "mindist") of your opponent, you won't spawn there.
+	+ Added cvars to adjust the particle effect that is attached to a player when they hold the intel:
+		- mgemod_bball_particle_red
+		- mgemod_bball_particle_blue
+	
+	Features:
+	+ Added advanced stat tracking, based on code provided by Jonas Jacobi.
+		- WebUI created by Skyride.
+	+ Added accuracy display for the spectator HUD.
+
+	Fixes:
+	- Fixed error in BBall hoop generation logic that caused it to log an error only when everything was working fine.
+	- Fixed an error that prevented the plugin from realizing a duel in a normal ammomod arena had reached its fraglimit.
+	- Fixed a spectating in floor bug.
+	- Fixed a case where a duel's stats could get reported multiple times.
+	- Fixed a case where a disconnect could cause another player to spawn in "the black box".
+
+
+0.0.3 - October 13, 2010
+	- Tightened up client validity checks that caused logspam and odd behavior.
+	- Prevented !add and !remove from being able to be used when not on an MGE or AM map.
+	- Fixed an (often unintentional) exploit that allowed a client to leave an active match without losing points.
+	- Changed translation format.
+	- Started code cleanup and organization.
+	- Fixed a bug where the score of a match would be printed to chat multiple times, and the ELO rating of the players would get calculated multiple times.
+	+ Added BBall
+	+ Added !top5 command. (Buggy)
+	+ Added welcome message.
+	+ Added automatic execution of team balance-related cvars, to prevent confusion on new installs. This can be toggled with mgemod_autocvar.
+	+ Added optional debug logging, mostly centered around BBall. To use, uncomment "#define DEBUG_LOG" and re-compile.
+
+0.0.2 - September 21, 2010
+	- Changed Badlands Middle spawns to be less cluttered.
+	- Fixed joinclass logic to prevent a "scout with a goddamn rocket launcher" exploit and to not award class change points during countdown.
+	+ Added Russian translations, courtesy of Root_.
+
+0.0.1 - September 20, 2010
+	- Initial release.
+
+TODO:
+	Fix root_'s "double disconnect" bug.
+	Enable team (2v2) arenas.
+	Improve BBall arena gameplay to more closely match ctf_bball gameplay.
+	Remove firing delay when a player spawns.
+	Figure out why T_SQLQueryOnConnect fails sometimes.
+
+Known Bugs:
+	Changing class while taunting can cause a "civilian" glitch.

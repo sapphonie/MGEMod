@@ -1,0 +1,118 @@
+﻿// colors:
+// player names - {lightgreen}
+// arena name - {greeen}
+// info/tip - {olive}
+// numbers - {green}
+
+"Phrases"
+{
+	"MenuTitle" //no colors here
+	{
+		"ru"			"Выберите арену..."
+	}
+	"MenuRemove" //no colors here
+	{
+		"ru"			"Выйти из очереди"
+	}
+	"HPLeft"
+	{
+		"ru"			"{green}[MGEMod]{default} У вашего оппонента осталось {green}{1}{default} жизней."
+	}
+	"Adv"
+	{
+		"ru"			"{olive}Для того чтобы зайти на арену напишите в чате {default}!add или /add"
+	}
+	"JoinsArena"
+	{
+		"ru"			"{lightgreen}{1} ({2}) {default}заходит на арену {green}{3}."
+	}
+	"JoinsArenaNoStats"
+	{
+		"ru"			"{lightgreen}{1} {default}заходит на арену {green}{2}."
+	}
+	"ChoseArena"
+	{
+		"ru"			"Вы выбрали арену {green}{1}."
+	}
+	"NextInLine"
+	{
+		"ru"			"Вы {green}следующий{default} в очереди."
+	}
+	"InLine"
+	{
+		"ru"			"Вы {green}{1}{default} в очереди."
+	}
+	"GainedPoints"
+	{
+		"ru"			"Вы получили {green}{1}{default} очков."
+	}
+	"LostPoints"
+	{
+		"ru"			"Вы потеряли {green}{1}{default} очков."
+	}
+	"MyRank"
+	{
+		"ru"			"Ваш рейтинг равен {green}{1}{default}. Побед: {green}{2}{default} , Поражений: {green}{3}{default}"
+	}
+	"ClassIsNotAllowed"
+	{
+		"ru"			"{olive}Этот класс не разрешен!"
+	}
+	"LowRating"
+	{
+		"ru"			"Ваш рейтинг {green}{1}{default} слишком мал, минимальный {green}{2}"
+	}
+	"HighRating"
+	{
+		"ru"			"Ваш рейтинг {green}{1}{default} слишком велик, максимальный {green}{2}"
+	}
+	"XdefeatsY"
+	{
+		"ru"			"{lightgreen}{1}{default} (Score:{2}) победил {lightgreen}{3}{default} (Счет:{4}) в дуели до {green}{5}{default} на арене {green}{6}"
+	}
+	"XdefeatsYearly"
+	{
+		"ru"			"{lightgreen}{1}{default} (Счет:{2}) победил {lightgreen}{3}{default} (Счет:{4}) в дуели до {green}{5}"
+	}
+	"SpecRemove"
+	{
+		"ru"			"{olive}Нельзя перейти в наблюдатели когда участвуете в бою, вы покидаете очередь."
+	}
+	"ClassChangePoint"
+	{
+		"ru"			"{olive}Вы поменяли класс во время битвы. Оппонент получает одно очко."
+	}
+	"ClassChangePointOpponent"
+	{
+		"ru"			"{olive}Ваш оппонент поменял класс во время битвы. Вы получаете одно очко."
+	}
+	"Welcome1"
+	{
+		"ru"			"{olive}Добро пожаловать на MGEMod, созданный {lightgreen}MyGamingEdge.com"
+	}
+	"Welcome2"
+	{
+		"ru"			"{olive}Карта создана{default}: {lightgreen}Swaty {default}и {lightgreen}CB"		
+	}
+	"Welcome3"
+	{
+		"ru"			"{olive}Плагин от{default}: {lightgreen}Lange{default}, созданный на основе {lightgreen}kAmmomod"
+	}
+	"top5"
+	{
+		"ru"			"{olive}Пять лучших игроков: {lightgreen}{1}{olive}({default}{2}{olive}), {lightgreen}{3}{olive}({default}{4}{olive}), {lightgreen}{5}{olive}({default}{6}{olive}),"
+	}
+	"top5_2"
+	{
+		"ru"			"{lightgreen}{1}{olive}({default}{2}{olive}), {lightgreen}{3}{olive}({default}{4}{olive})"
+	}
+	"top5error"
+	{
+		"ru"			"[MGEMod] В базе данных недостаточно игроков."
+	}
+	"bballdunk"
+	{
+		"ru"			"{lightgreen}Вы {default}одержали победу над {lightgreen}{1}{default}."
+	}
+}
+
