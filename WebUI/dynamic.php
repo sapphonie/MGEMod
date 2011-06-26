@@ -1,7 +1,15 @@
 <?php
 
     include("includes/main.php");
-
+	
+	define('WEAPONIDX', 0);
+	define('HITS', 1);
+	define('SHOTS', 2);
+	define('ACCURACY', 3);
+	define('DAMAGE', 4);
+	define('DIRECTS', 5);
+	define('AIRSHOTS', 6);
+				
 	function mean($input, $val)
 	{
 		$count = count($input);
@@ -423,7 +431,7 @@
 
 		//Build SQL query
 		$steamid = mysql_real_escape_string($steamid);
-		$sql = 'SELECT name FROM mgemod_stats WHERE steamid = \''.$steamid.'\';';
+		$sql = 'SELECT name FROM mgemod_players WHERE steamid = \''.$steamid.'\';';
 
 		$output = $mgestats->mysql_query_stats($sql);
 		if(count($output) < 1)
@@ -522,7 +530,7 @@ function DOA($i1, $i2)
 			} else {
 				$newcache = true;
 			}
-			$sql = 'SELECT wins FROM `mgemod_stats`;';
+			$sql = 'SELECT wins FROM `mgemod_players`;';
 			$count = $mgestats->mysql_query_stats($sql);
                 $output = 0;
                 $counter = 0;
@@ -533,7 +541,7 @@ function DOA($i1, $i2)
                 }
 			$out = $output . ':';
 		
-            $sql = 'SELECT hitblip FROM `mgemod_stats`;';
+            $sql = 'SELECT hitblip FROM `mgemod_players`;';
             $count = count($mgestats->mysql_query_stats($sql));
 			$out .= $count;
 			
@@ -551,7 +559,7 @@ function DOA($i1, $i2)
 			
 			$pid = $page * 30;
 			
-			$sql = 'SELECT SUM(mgemod_stats.wins+mgemod_stats.losses) AS total, mgemod_stats.wins, mgemod_stats.losses, mgemod_stats.rating, mgemod_stats.name, mgemod_stats.steamid FROM mgemod_stats GROUP BY name ORDER BY rating DESC ';
+			$sql = 'SELECT SUM(mgemod_players.wins+mgemod_players.losses) AS total, mgemod_players.wins, mgemod_players.losses, mgemod_players.rating, mgemod_players.name, mgemod_players.steamid FROM mgemod_players GROUP BY name ORDER BY rating DESC ';
 			$players = $mgestats->mysql_query_stats($sql);
 			while(($players[] = mysql_fetch_assoc($list)) || array_pop($players));
 			
@@ -601,7 +609,7 @@ function DOA($i1, $i2)
 			$player = mysql_real_escape_string($_REQUEST['player']);
 
 			//Get info on the players duels
-			$sql = 'SELECT * FROM mgemod_stats WHERE steamid = \'' . $player . '\' LIMIT 0, 1';
+			$sql = 'SELECT * FROM mgemod_players WHERE steamid = \'' . $player . '\' LIMIT 0, 1';
 			$player = $mgestats->mysql_query_stats($sql);
 			$player = $player[0];
 			$player['friendid'] = steam2friend($player['steamid']);
@@ -634,9 +642,19 @@ function DOA($i1, $i2)
 			echo '</table>';
 
 				//Query the database for weapon stats info
-				$sql = 'SELECT * FROM mgemod_career_weapons WHERE steamid = \'' . mysql_real_escape_string($player['steamid']) . '\'';
-				$weaponinfo = $mgestats->mysql_query_stats($sql);
-
+				$sql = 'SELECT career FROM mgemod_players WHERE steamid = \'' . mysql_real_escape_string($player['steamid']) . '\'';
+				$temp = $mgestats->mysql_query_stats($sql);
+				$weaponinfo_rows = explode ("\n", $temp[0][career]);
+				$counter = 0;
+				$count = count($weaponinfo_rows);
+				
+				while($counter < $count - 1)
+				{
+					$weaponinfo_cells[$counter] = explode(",", $weaponinfo_rows[$counter]);
+					
+					$counter++;					
+				}
+				
 				//Weapon stats info
 				echo '<br/><span>Weapon Stats</span><br/>';
 				echo '<table width="100%" cellpadding="0" cellspacing="0" border="0">';
@@ -644,7 +662,7 @@ function DOA($i1, $i2)
 
 
 				//Now echo the weapon info
-				if($weaponinfo[0]['airshots'] == "")
+				if($weaponinfo_cells[0][AIRSHOTS] == "")
 				{
 					echo '<tr><td colspan="6">';
 					echo 'This user has not logged any weapon stats yet';
@@ -666,22 +684,24 @@ function DOA($i1, $i2)
 
 					//Start the counter
 					$counter = 0;
-					$count = count($weaponinfo);
+					$count = count($weaponinfo_cells);
 					while($counter < $count)
 					{
 						echo '<tr>';
 						//Weapon
-						echo '<td>' . $weaponinfo[$counter]['weapon'] . '</td>';
+						$sql = 'SELECT name FROM mgemod_resources WHERE idx = ' . $weaponinfo_cells[$counter][WEAPONIDX] . '';
+						$temp = $mgestats->mysql_query_stats($sql);
+						echo '<td>' . $temp[0]['name']  . '</td>';
 						//Accuracy
-						echo '<td>' . (round(($weaponinfo[$counter]['hits'] / $weaponinfo[$counter]['shots']), 3) * 100) . '%</td>';
+						echo '<td>' . (round(($weaponinfo_cells[$counter][HITS] / $weaponinfo[$counter][SHOTS]), 3) * 100) . '%</td>';
 						//Directs
-						echo '<td>' . $weaponinfo[$counter]['directs'] . '</td>';
+						echo '<td>' . $weaponinfo_cells[$counter][DIRECTS] . '</td>';
 						//Airshots
-						echo '<td>' . $weaponinfo[$counter]['airshots'] . '</td>';
+						echo '<td>' . $weaponinfo_cells[$counter][AIRSHOTS] . '</td>';
 						//Average DPS
-						echo '<td>' . round(($weaponinfo[$counter]['damage'] / $weaponinfo[$counter]['hits']), 2) . '</td>';
+						echo '<td>' . round(($weaponinfo_cells[$counter][DAMAGE] / $weaponinfo[$counter][HITS]), 2) . '</td>';
 						//Shots
-						echo '<td>' . $weaponinfo[$counter]['shots'] . '</td>';
+						echo '<td>' . $weaponinfo_cells[$counter][SHOTS] . '</td>';
 
 						echo '</tr>';
 
@@ -834,13 +854,34 @@ function DOA($i1, $i2)
 			$duelinfo = $duelinfo[0];
 
 			//Winner weapon stats
-			$sql = 'SELECT * FROM mgemod_weapons WHERE gametime = \'' . mysql_real_escape_string($gametime) . '\' AND steamid = \'' . mysql_real_escape_string($duelinfo['winner']) . '\'';
-			$winnerweapons = $mgestats->mysql_query_stats($sql);
+			$sql = 'SELECT winnerstats FROM mgemod_duels WHERE gametime = \'' . mysql_real_escape_string($gametime) . '\' AND winner = \'' . mysql_real_escape_string($duelinfo['winner']) . '\'';
+			$temp = $mgestats->mysql_query_stats($sql);
+			$winnerweapons_rows = explode("\n", $temp[0][winnerstats]);
+			$counter = 0;
+			$count = count($winnerweapons_rows);
+				
+			while($counter < $count - 1)
+			{
+				$winnerweapons[$counter] = explode(",", $winnerweapons_rows[$counter]);
+				
+				$counter++;					
+			}
 
 			//Loser weapon stats
-			$sql = 'SELECT * FROM mgemod_weapons WHERE gametime = \'' . mysql_real_escape_string($gametime) . '\' AND steamid = \'' . mysql_real_escape_string($duelinfo['loser']) . '\'';
-			$loserweapons = $mgestats->mysql_query_stats($sql);
-
+			$sql = 'SELECT loserstats FROM mgemod_duels WHERE gametime = \'' . mysql_real_escape_string($gametime) . '\' AND loser = \'' . mysql_real_escape_string($duelinfo['loser']) . '\'';
+			$temp = $mgestats->mysql_query_stats($sql);
+			$loserweapons_rows = explode("\n", $temp[0][loserstats]);
+			$counter = 0;
+			$count = count($loserweapons_rows);
+				
+			while($counter < $count - 1)
+			{
+				$loserweapons[$counter] = explode(",", $loserweapons_rows[$counter]);
+				
+				$counter++;					
+			}
+			
+			
 			//Echo main info
 			echo '<table width="100%">';
 			echo '<tr>';
@@ -904,13 +945,15 @@ function DOA($i1, $i2)
 						while($counter < $count)
 						{
 							echo '<tr>';
-							echo '<td>' . $winnerweapons[$counter]['weapon'] . '</td>';
-							echo '<td>' . $winnerweapons[$counter]['shots'] . '</td>';
-							echo '<td>' . $winnerweapons[$counter]['hits'] . '</td>';
-							echo '<td>' . (round(($winnerweapons[$counter]['hits'] / $winnerweapons[$counter]['shots']), 3) * 100) . '%</td>';
-							echo '<td>' . round(($winnerweapons[$counter]['damage'] / $winnerweapons[$counter]['hits']), 2) . '</td>';
-							echo '<td>' . $winnerweapons[$counter]['directs'] . '</td>';
-							echo '<td>' . $winnerweapons[$counter]['airshots'] . '</td>';
+							$sql = 'SELECT name FROM mgemod_resources WHERE idx = ' . $winnerweapons[$counter][WEAPONIDX] . '';
+							$temp = $mgestats->mysql_query_stats($sql);
+							echo '<td>' . $temp[0]['name']  . '</td>';
+							echo '<td>' . $winnerweapons[$counter][SHOTS] . '</td>';
+							echo '<td>' . $winnerweapons[$counter][HITS] . '</td>';
+							echo '<td>' . (round(($winnerweapons[$counter][HITS] / $winnerweapons[$counter][SHOTS]), 3) * 100) . '%</td>';
+							echo '<td>' . round(($winnerweapons[$counter][DAMAGE] / $winnerweapons[$counter][HITS]), 2) . '</td>';
+							echo '<td>' . $winnerweapons[$counter][DIRECTS] . '</td>';
+							echo '<td>' . $winnerweapons[$counter][AIRSHOTS] . '</td>';
 							echo '</tr>';
 							$counter++;
 						}
@@ -945,13 +988,15 @@ function DOA($i1, $i2)
 						while($counter < $count)
 						{
 							echo '<tr>';
-							echo '<td>' . $loserweapons[$counter]['weapon'] . '</td>';
-							echo '<td>' . $loserweapons[$counter]['shots'] . '</td>';
-							echo '<td>' . $loserweapons[$counter]['hits'] . '</td>';
-							echo '<td>' . (round(($loserweapons[$counter]['hits'] / $loserweapons[$counter]['shots']), 3) * 100) . '%</td>';
-							echo '<td>' . round(($loserweapons[$counter]['damage'] / $loserweapons[$counter]['hits']), 2) . '</td>';
-							echo '<td>' . $loserweapons[$counter]['directs'] . '</td>';
-							echo '<td>' . $loserweapons[$counter]['airshots'] . '</td>';
+							$sql = 'SELECT name FROM mgemod_resources WHERE idx = ' . $loserweapons[$counter][WEAPONIDX] . '';
+							$temp = $mgestats->mysql_query_stats($sql);
+							echo '<td>' . $temp[0]['name'] . '</td>';
+							echo '<td>' . $loserweapons[$counter][SHOTS] . '</td>';
+							echo '<td>' . $loserweapons[$counter][HITS] . '</td>';
+							echo '<td>' . (round(($loserweapons[$counter][HITS] / $loserweapons[$counter][SHOTS]), 3) * 100) . '%</td>';
+							echo '<td>' . round(($loserweapons[$counter][DAMAGE] / $loserweapons[$counter][HITS]), 2) . '</td>';
+							echo '<td>' . $loserweapons[$counter][DIRECTS] . '</td>';
+							echo '<td>' . $loserweapons[$counter][AIRSHOTS] . '</td>';
 							echo '</tr>';
 							$counter++;
 						}

@@ -38,6 +38,7 @@
 
 //stat tracking
 #define MAXWEAPONS 31 // Max # of weapons to track stats for.
+#define MAX_WEAP_NAME_LEN 64
 
 
 // ====[ VARIABLES ]===================================================
@@ -159,7 +160,7 @@ new String:g_sBBallParticleRed[64],
 String:g_sBBallParticleBlue[64];
 
 // Stat tracking
-new	String:g_sWeaponName[MAXWEAPONS+1][64],
+new	String:g_sWeaponName[MAXWEAPONS+1][MAX_WEAP_NAME_LEN],
 bool:g_bWeaponProjectile[MAXWEAPONS+1],
 g_iWeaponCount,
 g_iWeaponMaxDmg[MAXWEAPONS+1],
@@ -168,6 +169,11 @@ g_iPlayerHitCount[MAXPLAYERS+1][MAXWEAPONS+1],
 g_iPlayerDamageDealt[MAXPLAYERS+1][MAXWEAPONS+1],
 g_iPlayerDirectHitCount[MAXPLAYERS+1][MAXWEAPONS+1],
 g_iPlayerAirshotCount[MAXPLAYERS+1][MAXWEAPONS+1],
+g_iCareerShotCount[MAXPLAYERS+1][MAXWEAPONS+1],
+g_iCareerHitCount[MAXPLAYERS+1][MAXWEAPONS+1],
+g_iCareerDamageDealt[MAXPLAYERS+1][MAXWEAPONS+1],
+g_iCareerDirectHitCount[MAXPLAYERS+1][MAXWEAPONS+1],
+g_iCareerAirshotCount[MAXPLAYERS+1][MAXWEAPONS+1],
 g_iPreviousAmmo[MAXPLAYERS+1], // Ammo of player in the last gameframe
 g_iPlayerWeapon[MAXPLAYERS+1], // Handle of the currently equipped weapon of a player
 g_iPlayerWeaponIndex[MAXPLAYERS+1], // Index of the currently equipped weapon in TFWeapon_Track array. -1 if weapon is not tracked
@@ -256,7 +262,14 @@ public OnPluginStart()
 	
 	// Only connect to the SQL DB if stats are enabled.
 	if(!g_bNoStats)
-		PrepareSQL();
+	{
+		new bool:useStats = LoadStatsCfg();
+		
+		if(!useStats)
+				g_bNoStats = true;
+		else
+			PrepareSQL();
+	}
 	
 	// Hook convar changes.
 	HookConVarChange(gcvar_fragLimit, handler_ConVarChange);
@@ -289,8 +302,7 @@ public OnPluginStart()
 	RegConsoleCmd("spec_prev", Command_Spec);
 	RegConsoleCmd("joinclass", Command_JoinClass);
 	RegAdminCmd("loc", Command_Loc, ADMFLAG_BAN, "Shows client origin and angle vectors");
-	RegAdminCmd("tryme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
-	RegAdminCmd("botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena (alias)");
+	RegAdminCmd("botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
 	RegAdminCmd("conntest", Command_ConnectionTest, ADMFLAG_BAN, "Connection test.");
 	
 	// Create the HUD text handles for later use.
@@ -310,13 +322,13 @@ public OnPluginStart()
 		{
 			if(IsValidClient(i))
 			{
-				g_bHitBlip[i] = false;
+				/*g_bHitBlip[i] = false;
 				decl String:steamid_dirty[31], String:steamid[64], String:query[256];
 				GetClientAuthString(i, steamid_dirty, sizeof(steamid_dirty));
 				SQL_EscapeString(db, steamid_dirty, steamid, sizeof(steamid));
 				strcopy(g_sPlayerSteamID[i],32,steamid);
 				Format(query, sizeof(query), "SELECT rating, wins, losses, hitblip, hud FROM mgemod_players WHERE steamid='%s' LIMIT 1", steamid);
-				SQL_TQuery(db, T_SQLQueryOnConnect, query, i);
+				SQL_TQuery(db, T_SQLQueryOnConnect, query, i);*/
 				OnClientPostAdminCheck(i);
 			}
 		}
@@ -389,7 +401,7 @@ public OnMapStart()
 		
 		if(!g_bNoStats)
 		{
-			new useStats = LoadStatsCfg();
+			new bool:useStats = LoadStatsCfg();
 			if(!useStats)
 				g_bNoStats = true;
 		}
@@ -469,7 +481,7 @@ public OnClientPostAdminCheck(client)
 				GetClientAuthString(client, steamid_dirty, sizeof(steamid_dirty));
 				SQL_EscapeString(db, steamid_dirty, steamid, sizeof(steamid));
 				strcopy(g_sPlayerSteamID[client],32,steamid);
-				Format(query, sizeof(query), "SELECT rating, wins, losses, hitblip, hud FROM mgemod_players WHERE steamid='%s' LIMIT 1", steamid);
+				Format(query, sizeof(query), "SELECT rating, wins, losses, hitblip, hud, career FROM mgemod_players WHERE steamid='%s' LIMIT 1", steamid);
 				SQL_TQuery(db, T_SQLQueryOnConnect, query, client);
 			}
 		}
@@ -1189,7 +1201,7 @@ CalcELO(winner, loser)
 	if (IsFakeClient(winner) || IsFakeClient(loser) || g_bNoStats)
 		return;
 	
-	
+	// ELO formula
 	new Float:El = 1/(Pow(10.0, float((g_iPlayerRating[winner]-g_iPlayerRating[loser]))/400)+1);
 	new k = (g_iPlayerRating[winner]>=2400) ? 10 : 15;
 	new winnerscore = RoundFloat(k*El);
@@ -1199,9 +1211,10 @@ CalcELO(winner, loser)
 	g_iPlayerRating[loser] -= loserscore;
 	
 	decl String:query[512], String:sCleanArenaname[128], String:sCleanMapName[128];
-	new String:sWinnerStats[1024], String:sLoserStats[1024];
+	new String:sWinnerStats[1024], String:sLoserStats[1024], String:sWinnerCareerStats[2048], String:sLoserCareerStats[2048];
+	decl Float:fAccuracy[3][g_iWeaponCount]; // Winner = SLOT_ONE, Loser = SLOT_TWO
 	new arena_index = g_iPlayerArena[winner], time = GetTime();
-	new Float:fAccuracy[3][g_iWeaponCount]; // Winner = SLOT_ONE, Loser = SLOT_TWO
+	
 	SQL_EscapeString(db, g_sArenaName[g_iPlayerArena[winner]], sCleanArenaname, sizeof(sCleanArenaname));
 	SQL_EscapeString(db, g_sMapName, sCleanMapName, sizeof(sCleanMapName));
 	
@@ -1211,41 +1224,75 @@ CalcELO(winner, loser)
 	if(IsValidClient(loser) && !g_bNoDisplayRating)
 		CPrintToChat(loser, "%t","LostPoints",loserscore);
 	
-	//winner's stats
-	Format(query, sizeof(query), 	"UPDATE mgemod_players SET rating=%i,wins=wins+1,lastplayed=%i WHERE steamid='%s'", 
-									g_iPlayerRating[winner], time, g_sPlayerSteamID[winner]);
-	SQL_TQuery(db, SQLErrorCheckCallback, query);
-	
-	//loser's stats
-	Format(query, sizeof(query), 	"UPDATE mgemod_players SET rating=%i,losses=losses+1,lastplayed=%i WHERE steamid='%s'", 
-									g_iPlayerRating[loser], time, g_sPlayerSteamID[loser]);
-	SQL_TQuery(db, SQLErrorCheckCallback, query);
-	
 	for(new i = 0; i <= g_iWeaponCount; ++i)
 	{
 		new Float:accuracy;
 		if (g_iPlayerShotCount[winner][i] > 0)
 		{
+			// Duel-specific stats
 			accuracy = ((float(g_iPlayerHitCount[winner][i])/float(g_iPlayerShotCount[winner][i]))*100.0);
 			fAccuracy[SLOT_ONE][i] = RoundToFloor(accuracy) + FloatFraction(accuracy);
+			
 			Format(sWinnerStats, sizeof(sWinnerStats), 	"%i, %i, %i, %f, %i, %i, %i\\n%s", 
 														g_iWeaponIdx[i], g_iPlayerHitCount[winner][i], g_iPlayerShotCount[winner][i], 
 														fAccuracy[SLOT_ONE][i], g_iPlayerDamageDealt[winner][i], g_iPlayerDirectHitCount[winner][i], 
 														g_iPlayerAirshotCount[winner][i], sWinnerStats);
 		}
 		
+		// Career stats
+		g_iCareerHitCount[winner][i] += g_iPlayerHitCount[winner][i];
+		g_iCareerShotCount[winner][i] += g_iPlayerShotCount[winner][i]; 
+		g_iCareerDamageDealt[winner][i] += g_iPlayerDamageDealt[winner][i];
+		g_iCareerDirectHitCount[winner][i] += g_iPlayerDirectHitCount[winner][i];
+		g_iCareerAirshotCount[winner][i] += g_iPlayerAirshotCount[winner][i];
+		
+		accuracy = ((float(g_iCareerHitCount[winner][i])/float(g_iCareerShotCount[winner][i]))*100.0);
+		fAccuracy[SLOT_ONE][i] = RoundToFloor(accuracy) + FloatFraction(accuracy);
+		
+		Format(sWinnerCareerStats, sizeof(sWinnerCareerStats), 	"%i, %i, %i, %f, %i, %i, %i\\n%s", 
+													g_iWeaponIdx[i], g_iCareerHitCount[winner][i], g_iCareerShotCount[winner][i], 
+													fAccuracy[SLOT_ONE][i], g_iCareerDamageDealt[winner][i], g_iCareerDirectHitCount[winner][i], 
+													g_iCareerAirshotCount[winner][i], sWinnerCareerStats);
+		
 		if (g_iPlayerShotCount[loser][i] > 0)
 		{
+			// Duel-specific stats
 			accuracy = ((float(g_iPlayerHitCount[loser][i])/float(g_iPlayerShotCount[loser][i]))*100.0);
 			fAccuracy[SLOT_TWO][i] = RoundToFloor(accuracy) + FloatFraction(accuracy);
-			Format(sLoserStats, sizeof(sLoserStats), 	"%i, %i, %i, %f, %i, %i, %i\\n%s", 	
+			
+			Format(sLoserStats, sizeof(sLoserStats), 	"%i, %i, %i, %f, %i, %i, %i\\n%s", 
 														g_iWeaponIdx[i], g_iPlayerHitCount[loser][i], g_iPlayerShotCount[loser][i], 
 														fAccuracy[SLOT_TWO][i], g_iPlayerDamageDealt[loser][i], g_iPlayerDirectHitCount[loser][i], 
 														g_iPlayerAirshotCount[loser][i], sLoserStats);
 		}
+		
+		// Career stats
+		g_iCareerHitCount[loser][i] += g_iPlayerHitCount[loser][i];
+		g_iCareerShotCount[loser][i] += g_iPlayerShotCount[loser][i] ;
+		g_iCareerDamageDealt[loser][i] += g_iPlayerDamageDealt[loser][i];
+		g_iCareerDirectHitCount[loser][i] += g_iPlayerDirectHitCount[loser][i];
+		g_iCareerAirshotCount[loser][i] += g_iPlayerAirshotCount[loser][i];
+		
+		accuracy = ((float(g_iCareerHitCount[loser][i])/float(g_iCareerShotCount[loser][i]))*100.0);
+		fAccuracy[SLOT_TWO][i] = RoundToFloor(accuracy) + FloatFraction(accuracy);
+		
+		Format(sLoserCareerStats, sizeof(sLoserCareerStats), 	"%i, %i, %i, %f, %i, %i, %i\\n%s", 
+													g_iWeaponIdx[i], g_iCareerHitCount[loser][i], g_iCareerShotCount[loser][i], 
+													fAccuracy[SLOT_TWO][i], g_iCareerDamageDealt[loser][i], g_iCareerDirectHitCount[loser][i], 
+													g_iCareerAirshotCount[loser][i], sLoserCareerStats);
 	}
 
-	// DB entry for this specific duel.
+	// pdate winner's career stats
+	Format(query, sizeof(query), 	"UPDATE mgemod_players SET rating=%i,wins=wins+1,lastplayed=%i, career='%s' WHERE steamid='%s'", 
+									g_iPlayerRating[winner], time, sWinnerCareerStats, g_sPlayerSteamID[winner]);
+	SQL_TQuery(db, SQLErrorCheckCallback, query);
+	
+	// Update losers's career stats
+	Format(query, sizeof(query), 	"UPDATE mgemod_players SET rating=%i,losses=losses+1,lastplayed=%i, career='%s' WHERE steamid='%s'", 
+									g_iPlayerRating[loser], time, sLoserCareerStats, g_sPlayerSteamID[loser]);
+	SQL_TQuery(db, SQLErrorCheckCallback, query);
+	
+	// DB entry for this specific duel
 	if(g_bUseSQLite)
 	{
 		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels VALUES ('%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
@@ -1490,7 +1537,7 @@ LoadSpawnPoints()
 	}
 }
 
-LoadStatsCfg()
+bool:LoadStatsCfg()
 {
 	new String:txtfile[256];
 	BuildPath(Path_SM, txtfile, sizeof(txtfile), STATSCONFIGFILE);
@@ -1508,7 +1555,7 @@ LoadStatsCfg()
 			do
 			{
 				g_iWeaponCount++;
-				KvGetSectionName(kv, g_sWeaponName[g_iWeaponCount], 64);
+				KvGetSectionName(kv, g_sWeaponName[g_iWeaponCount], MAX_WEAP_NAME_LEN);
 				g_iWeaponIdx[g_iWeaponCount] = KvGetNum(kv, "idx");
 				g_iWeaponMaxDmg[g_iWeaponCount] = KvGetNum(kv, "maxdmg", -1);
 				g_bWeaponProjectile[g_iWeaponCount] = KvGetNum(kv, "projectile", 0) ? true : false ;
@@ -2368,12 +2415,12 @@ PrepareSQL() // Opens the connection to the database, and creates the tables if 
 	if(SQL_CheckConfig(g_sDBConfig))
 		db = SQL_Connect(g_sDBConfig, true, error, sizeof(error));
 	
-	if(db==INVALID_HANDLE)
+	if(db == INVALID_HANDLE)
 	{
 		LogError("Cant use database config <%s> <Error: %s>, trying SQLite <storage-local>...",g_sDBConfig, error);
 		db = SQL_Connect("storage-local", true, error, sizeof(error));
 		
-		if(db==INVALID_HANDLE)
+		if(db == INVALID_HANDLE)
 			SetFailState("Could not connect to database: %s", error);
 		else
 			LogError("Success, using SQLite <storage-local>",g_sDBConfig, error);
@@ -2397,6 +2444,17 @@ PrepareSQL() // Opens the connection to the database, and creates the tables if 
 	} else {
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_players (steamid VARCHAR(32) NOT NULL, name VARCHAR(64) NOT NULL, rating INT(4) NOT NULL, wins INT(4) NOT NULL, losses INT(4) NOT NULL, lastplayed INT(11) NOT NULL, hitblip INT(2) NOT NULL, hud INT(2) NOT NULL, career VARCHAR(2048) NOT NULL, PRIMARY KEY (steamid)) ENGINE = InnoDB");
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (gametime INT(11) NOT NULL, winner VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL,  winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winnerstats VARCHAR(1024) NOT NULL,  loserstats VARCHAR(1024) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(64) NOT NULL, fraglimit INT(4) NOT NULL, PRIMARY KEY (winner, loser, gametime)) ENGINE = InnoDB");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_resources (idx INT(4) NOT NULL, name VARCHAR(64) NOT NULL, PRIMARY KEY (idx)) ENGINE = InnoDB");
+		
+		new i;
+		decl String:wpn_clean[MAX_WEAP_NAME_LEN * 2 + 1];
+		decl String:query[192];
+		for (i = 0; i <= g_iWeaponCount; i++)
+		{
+			SQL_EscapeString(db, g_sWeaponName[i], wpn_clean, sizeof(wpn_clean));
+			Format(query, sizeof(query), "INSERT INTO mgemod_resources (idx, name) VALUES (%i, '%s') ON DUPLICATE KEY UPDATE name= '%s'", g_iWeaponIdx[i], wpn_clean, wpn_clean);
+			SQL_TQuery(db, SQLErrorCheckCallback, query);
+		}
 	}
 }
 
@@ -2428,6 +2486,37 @@ public T_SQLQueryOnConnect(Handle:owner, Handle:hndl, const String:error[], any:
 		g_iPlayerLosses[client] = SQL_FetchInt(hndl, 2);
 		g_bHitBlip[client] = SQL_FetchInt(hndl, 3) ? true : false;
 		g_bShowHud[client] = SQL_FetchInt(hndl, 4) ? true : false;
+		
+		decl String:career[2048], String:career_rows[g_iWeaponCount][MAX_WEAP_NAME_LEN + 32], String:career_cells[g_iWeaponCount][7][MAX_WEAP_NAME_LEN];
+		new i, weaponIdx;
+		
+		SQL_FetchString(hndl, 5, career, sizeof(career));
+		
+		if(!StrEqual(career, "NULL", false))
+		{
+			ExplodeString(career, "\n", career_rows, g_iWeaponCount, MAX_WEAP_NAME_LEN + 32);
+			
+			for(i = 1; i < g_iWeaponCount; i++)
+			{
+				ExplodeString(career_rows[i], ",", career_cells[i], 7, MAX_WEAP_NAME_LEN);
+				
+				//weaponidx, hits, shots, accuracy, damage, directs, airshots
+				weaponIdx = StringToInt(career_cells[i][0]);
+				
+				weaponIdx = BinarySearch(g_iWeaponIdx, g_iWeaponCount, weaponIdx);
+				
+				if(weaponIdx != -1)
+				{
+					g_iCareerHitCount[client][weaponIdx] = StringToInt(career_cells[i][1]);
+					g_iCareerShotCount[client][weaponIdx] = StringToInt(career_cells[i][2]);
+					g_iCareerDamageDealt[client][weaponIdx] = StringToInt(career_cells[i][4]);
+					g_iCareerDirectHitCount[client][weaponIdx] = StringToInt(career_cells[i][5]);
+					g_iCareerAirshotCount[client][weaponIdx] = StringToInt(career_cells[i][6]);
+					
+					LogError("\nPlayer: %N, Weapon: %s\nHits: %i\nShots: %i\nDamage: %i\nDirects: %i\nAirshots: %i\n", client, g_sWeaponName[weaponIdx], g_iCareerHitCount[client][weaponIdx], g_iCareerShotCount[client][weaponIdx], g_iCareerDamageDealt[client][weaponIdx], g_iCareerDirectHitCount[client][weaponIdx], g_iCareerAirshotCount[client][weaponIdx]);
+				}
+			}
+		}
 		
 		Format(query, sizeof(query), "UPDATE mgemod_players SET name='%s' WHERE steamid='%s'", namesql, g_sPlayerSteamID[client]);
 		SQL_TQuery(db, SQLErrorCheckCallback, query);
