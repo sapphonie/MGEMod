@@ -12,10 +12,11 @@
 	}
 	"MenuRemove" //no colors here
 	{
-		"ru"			"Выйти из очереди"
+		"ru"			"Удалиться с арены"
 	}
 	"HPLeft"
 	{
+		"#format"		"{1:i}"
 		"ru"			"{green}[MGEMod]{default} У вашего оппонента осталось {green}{1}{default} жизней."
 	}
 	"Adv"
@@ -24,14 +25,17 @@
 	}
 	"JoinsArena"
 	{
+		"#format"		"{1:s},{2:i},{3:s}"
 		"ru"			"{lightgreen}{1} ({2}) {default}заходит на арену {green}{3}."
 	}
 	"JoinsArenaNoStats"
 	{
+		"#format"		"{1:s},{2:s}"
 		"ru"			"{lightgreen}{1} {default}заходит на арену {green}{2}."
 	}
 	"ChoseArena"
 	{
+		"#format"		"{1:s}"
 		"ru"			"Вы выбрали арену {green}{1}."
 	}
 	"NextInLine"
@@ -40,19 +44,28 @@
 	}
 	"InLine"
 	{
+		"#format"		"{1:i}"
 		"ru"			"Вы {green}{1}{default} в очереди."
 	}
 	"GainedPoints"
 	{
+		"#format"		"{1:i}"
 		"ru"			"Вы получили {green}{1}{default} очков."
 	}
 	"LostPoints"
 	{
+		"#format"		"{1:i}"
 		"ru"			"Вы потеряли {green}{1}{default} очков."
 	}
 	"MyRank"
 	{
+		"#format"		"{1:i},{2:i}"
 		"ru"			"Ваш рейтинг равен {green}{1}{default}. Побед: {green}{2}{default} , Поражений: {green}{3}{default}"
+	}
+	"MyRankNoRating"
+	{
+		"#format"		"{1:i},{2:i}"
+		"en"			"У вас {green}{1}{default} побед и {green}{2}{default} поражений."
 	}
 	"ClassIsNotAllowed"
 	{
@@ -60,23 +73,27 @@
 	}
 	"LowRating"
 	{
-		"ru"			"Ваш рейтинг {green}{1}{default} слишком мал, минимальный {green}{2}"
+		"#format"		"{1:i},{2:i}"
+		"ru"			"Ваш рейтинг {green}{1}{default} слишком мал. Необходимо {green}{2}+"
 	}
 	"HighRating"
 	{
-		"ru"			"Ваш рейтинг {green}{1}{default} слишком велик, максимальный {green}{2}"
+		"#format"		"{1:i},{2:i}"
+		"ru"			"Ваш рейтинг {green}{1}{default} слишком велик. Максимально допустимый {green}{2}"
 	}
 	"XdefeatsY"
 	{
+		"#format"		"{1:s},{2:i},{3:s},{4:i},{5:i},{6:s}"
 		"ru"			"{lightgreen}{1}{default} (Score:{2}) победил {lightgreen}{3}{default} (Счет:{4}) в дуели до {green}{5}{default} на арене {green}{6}"
 	}
 	"XdefeatsYearly"
 	{
+		"#format"		"{1:s},{2:i},{3:s},{4:i},{5:s}"
 		"ru"			"{lightgreen}{1}{default} (Счет:{2}) победил {lightgreen}{3}{default} (Счет:{4}) в дуели до {green}{5}"
 	}
 	"SpecRemove"
 	{
-		"ru"			"{olive}Нельзя перейти в наблюдатели когда участвуете в бою, вы покидаете очередь."
+		"ru"			"{olive}Нельзя перейти в наблюдатели когда вы на арене, вы удаляетесь с арены."
 	}
 	"ClassChangePoint"
 	{
@@ -98,21 +115,74 @@
 	{
 		"ru"			"{olive}Плагин от{default}: {lightgreen}Lange{default}, созданный на основе {lightgreen}kAmmomod"
 	}
-	"top5"
+	"Top5Title" //No colors here.
 	{
-		"ru"			"{olive}Пять лучших игроков: {lightgreen}{1}{olive}({default}{2}{olive}), {lightgreen}{3}{olive}({default}{4}{olive}), {lightgreen}{5}{olive}({default}{6}{olive}),"
-	}
-	"top5_2"
-	{
-		"ru"			"{lightgreen}{1}{olive}({default}{2}{olive}), {lightgreen}{3}{olive}({default}{4}{olive})"
+		"ru"			"Пятерка лучших"
 	}
 	"top5error"
 	{
-		"ru"			"[MGEMod] В базе данных недостаточно игроков."
+		"ru"			"[MGEMod] Еще не набралось достаточное количество игроов."
 	}
 	"bballdunk"
 	{
-		"ru"			"{lightgreen}Вы {default}одержали победу над {lightgreen}{1}{default}."
+		"#format"		"{1:s}"
+		"ru"			"{lightgreen}Вы {default}одержали победу над {lightgreen}{1}{default}!"
+	}
+	"Cmd_MGECmds"
+	{
+		"ru"			"[MGEMod] ПОМОЩЬ: Информация о командах"
+	}
+	"Cmd_SeeConsole"
+	{
+		"ru"			"[MGEMod] Смотри в консоли."
+	}
+	"Cmd_MGEMod"
+	{
+		"ru"			"[MGEMod] MGEMod\t - Меню"
+	}
+	"Cmd_Add"
+	{
+		"ru"			"[MGEMod] add\t - Используйте: add <номер арены/имя арены>. Зайти на арену."
+	}
+	"Cmd_Remove"
+	{
+		"ru"			"[MGEMod] remove\t - Удалиться с арены."
+	}
+	"Cmd_First"
+	{
+		"ru"			"[MGEMod] first\t - Присоединиться к любой свободной арене."
+	}
+	"Cmd_Top5"
+	{
+		"ru"			"[MGEMod] top5\t - Показать пятерку лучших игроков."
+	}
+	"Cmd_Rank"
+	{
+		"ru"			"[MGEMod] rank\t - Используйте: rank <имя игрока>. Посмотреть статистику игрока."
+	}
+	"Cmd_HitBlip"
+	{
+		"ru"			"[MGEMod] hitblip - Включить\отключить звук при попадании."
+	}
+	"NoClassChange"
+	{
+		"ru"			"{olive}Вы не можете сменить класс прямо сейчас."
+	}
+	"DatabaseDown"
+	{
+		"#format"		"{1:i}"
+		"ru"			"Не удается присоедниться к базе данных, отключаю статистику.\nПовторная попытка подключения будет через {1} минут."
+	}
+	"DatabaseRestored"
+	{
+		"ru"			"Соединение с базой данных восстановлено, обновление статистики..."
+	}
+	"StatsRestored"
+	{
+		"ru"			"Соединение с базой данных восстановлено, обновление статистики...\nСтатистика возвращена."
+	}
+	"StatsRestoredDown"
+	{
+		"ru"			"База данных восстановлена, но статистика выключена."
 	}
 }
-
