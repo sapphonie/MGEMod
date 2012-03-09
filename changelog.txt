@@ -1,10 +1,10 @@
-1.0.0
+1.0.0 - March 7th, 2012
 	Optimization:
 	- Removed many unnecessary checks, especially for functions run on every frame.
 	- Removed redundant and deprecated functions that dealt with particles.
 
 	Fixes:
-	- All 9 classes can now be defined in the spawns config, as originally intended.
+	- All 9 classes can now be defined in the spawns config, as originally intended (Thank's to useoftoaster for the basis to the Heavy workaround).
 	- Changed the way players' primary weapons are equipped when they spawn, eliminating compatability issues with tNoUnlocksPls.
 	- Automatic database reconnection now works as intended. This should result in fewer stat glitches.
 	- Improved string sanitation.
@@ -12,7 +12,7 @@
 	Configuration:
 	- Updated stat tracking to support newer weapons, and weapons from all 9 classes.
 
-0.0.5
+0.0.5 - April 9th, 2011
 	Features:
 	- mgemod_hide_rating: disables the in-game display of ELO rating. Players must visit a website running the MGEStats WebUI to view their stats.
 		- "top5" and "rank" still function in-game, but do not show ELO ratings.
@@ -45,7 +45,7 @@
 	- Figure out why T_SQLQueryOnConnect fails so frequently.
 		- People that conenct then disconnect before it has a chance to run?
 
-0.0.4
+0.0.4 - December 13, 2010
 	Balance:
 	- When a player changes classes in a duel, their opponent will recieve full health, in addition to the point they already recieve.
 
@@ -94,7 +94,7 @@
 	- Fixed a case where a disconnect could cause another player to spawn in "the black box".
 
 
-0.0.3
+0.0.3 - October 13, 2010
 	- Tightened up client validity checks that caused logspam and odd behavior.
 	- Prevented !add and !remove from being able to be used when not on an MGE or AM map.
 	- Fixed an (often unintentional) exploit that allowed a client to leave an active match without losing points.
@@ -107,12 +107,12 @@
 	+ Added automatic execution of team balance-related cvars, to prevent confusion on new installs. This can be toggled with mgemod_autocvar.
 	+ Added optional debug logging, mostly centered around BBall. To use, uncomment "#define DEBUG_LOG" and re-compile.
 
-0.0.2
+0.0.2 - September 21, 2010
 	- Changed Badlands Middle spawns to be less cluttered.
 	- Fixed joinclass logic to prevent a "scout with a goddamn rocket launcher" exploit and to not award class change points during countdown.
 	+ Added Russian translations, courtesy of Root_.
 
-0.0.1
+0.0.1 - September 20, 2010
 	- Initial release.
 
 TODO:
