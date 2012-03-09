@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.0" 
+#define PL_VERSION "1.0.1" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 15
 #define MAXSPAWNS 15
@@ -37,7 +37,7 @@
 #define MODEL_AMMOPACK "models/items/ammopack_small.mdl"
 
 //stat tracking
-#define MAXWEAPONS 31 // Max # of weapons to track stats for.
+#define MAXWEAPONS 63 // Max # of weapons to track stats for.
 #define MAX_WEAP_NAME_LEN 64
 
 //#define DEBUG_LOG

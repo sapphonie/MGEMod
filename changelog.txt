@@ -1,3 +1,7 @@
+1.0.1 - March 9th, 2012
+	Fixes:
+	- Fixed a bug in the stats system that prevented the plugin from loading (oops).
+
 1.0.0 - March 7th, 2012
 	Optimization:
 	- Removed many unnecessary checks, especially for functions run on every frame.
