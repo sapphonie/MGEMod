@@ -105,7 +105,8 @@
 	}
 	"Welcome1"
 	{
-		"de"			"{olive}Willkommen auf MGEMod, erstellt von {lightgreen}MyGamingEdge.com"
+		"#format"		"{1:s}"
+		"de"			"{olive}Willkommen auf MGEMod version {lightgreen}{1}"
 	}
 	"Welcome2"
 	{

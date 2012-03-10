@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.1" 
+#define PL_VERSION "1.0.2" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 15
 #define MAXSPAWNS 15
@@ -409,11 +409,21 @@ public OnMapStart()
  *
  * When the map ends.
  * Repeating timers can be killed here.
+ * Hooks are removed here.
  * -------------------------------------------------------------------------- */
 public OnMapEnd()
 {
 	g_hDBReconnectTimer = INVALID_HANDLE;
 	g_bNoStats = (GetConVarBool(gcvar_stats)) ? false : true;
+	
+	UnhookEvent("player_death", Event_PlayerDeath, EventHookMode_Pre);
+	UnhookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Post);
+	UnhookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Pre);
+	UnhookEvent("player_team", Event_PlayerTeam, EventHookMode_Pre);
+	UnhookEvent("teamplay_round_start", Event_RoundStart, EventHookMode_Post);
+	UnhookEvent("teamplay_win_panel", Event_WinPanel, EventHookMode_Post);
+	
+	RemoveNormalSoundHook(sound_hook);
 }
 
 /* OnEntityCreated(entity, const String:classname[])
@@ -3039,7 +3049,10 @@ public Action:Timer_WelcomePlayer(Handle:timer, any:userid)
 {
 	new client = GetClientOfUserId(userid);
 	
-	CPrintToChat(client, "%t", "Welcome1");
+	if(!IsValidClient(client))
+		return;
+	
+	CPrintToChat(client, "%t", "Welcome1", PL_VERSION);
 	if(StrContains(g_sMapName, "mge_", false) == 0)
 		CPrintToChat(client, "%t", "Welcome2");
 	CPrintToChat(client, "%t", "Welcome3");

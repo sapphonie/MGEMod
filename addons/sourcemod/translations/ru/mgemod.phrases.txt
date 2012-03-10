@@ -105,7 +105,8 @@
 	}
 	"Welcome1"
 	{
-		"ru"			"{olive}Добро пожаловать на MGEMod, созданный {lightgreen}MyGamingEdge.com"
+		"#format"		"{1:s}"
+		"ru"			"{olive}Добро пожаловать на MGEMod версия {lightgreen}{1}"
 	}
 	"Welcome2"
 	{
