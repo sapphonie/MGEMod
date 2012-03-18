@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.2" 
+#define PL_VERSION "1.0.3" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 15
 #define MAXSPAWNS 15
@@ -139,6 +139,7 @@ new Handle:g_hWelcomeTimer[MAXPLAYERS+1],
 	g_iPlayerWins[MAXPLAYERS+1],
 	g_iPlayerLosses[MAXPLAYERS+1],
 	g_iPlayerRating[MAXPLAYERS+1],
+	g_iPlayerHandicap[MAXPLAYERS+1],
 	TFClassType:g_tfctPlayerClass[MAXPLAYERS+1];
 	
 // Bot things
@@ -170,8 +171,8 @@ new	String:g_sWeaponName[MAXWEAPONS+1][64],
 	g_iPlayerDirectHitCount[MAXPLAYERS+1][MAXWEAPONS+1],
 	g_iPlayerAirshotCount[MAXPLAYERS+1][MAXWEAPONS+1],
 	g_iPreviousAmmo[MAXPLAYERS+1], // Ammo of player in the last gameframe
-	g_iPlayerWeapon[MAXPLAYERS+1], // Handle of the currently equipped weapon of a player
 	g_iPlayerWeaponIndex[MAXPLAYERS+1], // Index of the currently equipped weapon in TFWeapon_Track array. -1 if weapon is not tracked
+	g_iPlayerWeapon[MAXPLAYERS+1], // Handle of the currently equipped weapon of a player
 	g_iWeaponIdx[MAXWEAPONS+1] = -1;
 
 static const String:stockSounds[][]= // Sounds that do not need to be downloaded.
@@ -191,7 +192,7 @@ public Plugin:myinfo =
   author = "Lange; based on kAmmomod by Krolus.",
   description = "Duel mod with realistic game situations.",
   version = PL_VERSION,
-  url = "http://mygamingedge.com/, http://steamcommunity.com/id/langeh"
+  url = "https://github.com/Langeh/MGEMod, http://steamcommunity.com/id/langeh"
 }
 
 /*
@@ -269,6 +270,8 @@ public OnPluginStart()
 	HookConVarChange(gcvar_fragLimit, handler_ConVarChange);
 	HookConVarChange(gcvar_allowedClasses, handler_ConVarChange);
 	HookConVarChange(gcvar_blockFallDamage, handler_ConVarChange);
+	HookConVarChange(gcvar_dbConfig, handler_ConVarChange);
+	HookConVarChange(gcvar_stats, handler_ConVarChange);
 	HookConVarChange(gcvar_airshotHeight, handler_ConVarChange);
 	HookConVarChange(gcvar_midairHP, handler_ConVarChange);
 	HookConVarChange(gcvar_RocketForceX, handler_ConVarChange);
@@ -276,8 +279,9 @@ public OnPluginStart()
 	HookConVarChange(gcvar_RocketForceZ, handler_ConVarChange);
 	HookConVarChange(gcvar_autoCvar, handler_ConVarChange);
 	HookConVarChange(gcvar_meatshotPercent, handler_ConVarChange);
+	HookConVarChange(gcvar_bballParticle_red, handler_ConVarChange);
+	HookConVarChange(gcvar_bballParticle_blue, handler_ConVarChange);
 	HookConVarChange(gcvar_noDisplayRating, handler_ConVarChange);
-	HookConVarChange(gcvar_stats, handler_ConVarChange);
 	HookConVarChange(gcvar_reconnectInterval, handler_ConVarChange);
 
 	// Create/register client commands.
@@ -292,6 +296,7 @@ public OnPluginStart()
 	RegConsoleCmd("stats", Command_Rank, "Alias for \"rank\".");
 	RegConsoleCmd("mgehelp", Command_Help);
 	RegConsoleCmd("first", Command_First, "Join the first available arena.");
+	RegConsoleCmd("handicap", Command_Handicap, "Reduce your maximum HP. Type '!handicap off' to disable.");
 	RegConsoleCmd("spec_next", Command_Spec);
 	RegConsoleCmd("spec_prev", Command_Spec);
 	RegConsoleCmd("joinclass", Command_JoinClass);
@@ -311,23 +316,9 @@ public OnPluginStart()
 	/*	This is here in the event of the plugin being hot-loaded while players are in the server.
 		Should probably delete this, as the rest of the code doesn't really support hot-loading. */
 	if(!g_bNoStats)
-	{ 
 		for (new i=1;i<=MaxClients;i++)
-		{
 			if(IsValidClient(i))
-			{
-				/*g_bHitBlip[i] = false;
-				decl String:steamid[32];
-				GetClientAuthString(i, steamid, sizeof(steamid));
-				ReplaceString(steamid, sizeof(steamid), "'", "");
-				decl String:query[256];
-				Format(query, sizeof(query), "SELECT rating,hitblip,wins,losses FROM mgemod_stats WHERE steamid='%s' LIMIT 1", steamid);
-				SQL_TQuery(db, T_SQLQueryOnConnect, query, i);
-				strcopy(g_sPlayerSteamID[i],32,steamid);*/
 				OnClientPostAdminCheck(i);
-			}
-		}
-	}
 }
 
 /* OnGetGameDescription(String:gameDesc[64])
@@ -502,7 +493,7 @@ public OnClientPostAdminCheck(client)
 * -------------------------------------------------------------------------- */
 public OnClientDisconnect(client)
 {
-	if (IsValidClient(client) && g_iPlayerArena[client])
+	if (client > 1 && client < MaxClients && g_iPlayerArena[client])
 	{
 		RemoveFromQueue(client,true);
 	} else {
@@ -511,6 +502,7 @@ public OnClientDisconnect(client)
 			after_leaver_slot = player_slot + 1,
 			foe_slot = player_slot==SLOT_ONE ? SLOT_TWO : SLOT_ONE,
 			foe = g_iArenaQueue[arena_index][foe_slot];
+			
 		if (g_iArenaQueue[arena_index][SLOT_TWO+1])
 		{
 			new next_client = g_iArenaQueue[arena_index][SLOT_TWO+1];
@@ -1058,6 +1050,7 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 	g_iPlayerArena[client] = 0;
 	g_iPlayerSlot[client] = 0;
 	g_iArenaQueue[arena_index][player_slot] = 0;
+	g_iPlayerHandicap[client] = 0;
 	
 	if (IsValidClient(client) && GetClientTeam(client) != TEAM_SPEC)
 	{
@@ -1644,10 +1637,10 @@ ResetPlayer(client)
 	if (g_bArenaMidair[arena_index])
 		g_iPlayerHP[client] = g_iMidairHP;
 	else
-		g_iPlayerHP[client] = RoundToNearest(float(g_iPlayerMaxHP[client])*g_fArenaHPRatio[arena_index]);
+		g_iPlayerHP[client] = g_iPlayerHandicap[client] ? g_iPlayerHandicap[client] : RoundToNearest(float(g_iPlayerMaxHP[client])*g_fArenaHPRatio[arena_index]);
 		
 	if (g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index])
-		SetEntProp(client, Prop_Data, "m_iHealth", RoundToNearest(float(g_iPlayerMaxHP[client])*g_fArenaHPRatio[arena_index]));
+		SetEntProp(client, Prop_Data, "m_iHealth", g_iPlayerHandicap[client] ? g_iPlayerHandicap[client] : RoundToNearest(float(g_iPlayerMaxHP[client])*g_fArenaHPRatio[arena_index]));
 	
 	ShowPlayerHud(client);
 	ResetClientAmmoCounts(client);
@@ -2052,6 +2045,8 @@ public handler_ConVarChange(Handle:convar, const String:oldValue[], const String
 		g_bNoStats = (GetConVarBool(gcvar_stats)) ? false : true;
 	else if (convar == gcvar_reconnectInterval)
 		g_iReconnectInterval = StringToInt(newValue);
+	else if (convar == gcvar_dbConfig)
+		strcopy(g_sDBConfig, sizeof(g_sDBConfig), newValue);
 }
 
 // ====[ COMMANDS ]====================================================
@@ -2369,7 +2364,7 @@ public Action:Command_Help(client, args)
 		return Plugin_Continue;
 	
 	PrintToChat(client, "%t", "Cmd_SeeConsole");
-	PrintToConsole(client, "%t", "\n\n----------------------------");
+	PrintToConsole(client, "\n\n----------------------------");
 	PrintToConsole(client, "%t", "Cmd_MGECmds");
 	PrintToConsole(client, "%t", "Cmd_MGEMod");
 	PrintToConsole(client, "%t", "Cmd_Add");
@@ -2379,7 +2374,8 @@ public Action:Command_Help(client, args)
 	PrintToConsole(client, "%t", "Cmd_Rank");
 	PrintToConsole(client, "%t", "Cmd_HitBlip");
 	PrintToConsole(client, "%t", "Cmd_Hud");
-	PrintToConsole(client, "%t", "----------------------------\n\n");
+	PrintToConsole(client, "%t", "Cmd_Handicap");
+	PrintToConsole(client, "----------------------------\n\n");
 	
 	return Plugin_Handled;
 }
@@ -2420,6 +2416,76 @@ public Action:Command_First(client, args)
 	
 	// Couldn't find any empty or half-empty arenas, so display the menu.
 	ShowMainMenu(client);
+	return Plugin_Handled;
+}
+
+public Action:Command_Handicap(client, args)
+{
+	if (!IsValidClient(client))
+		return Plugin_Continue;
+	
+	new arena_index = g_iPlayerArena[client];
+	
+	if (!arena_index || g_bArenaMidair[arena_index])
+	{
+		CPrintToChat(client, "%t", "MustJoinArena");
+		g_iPlayerHandicap[client] = 0;
+		return Plugin_Handled;
+	}
+	
+	if(args==0)
+	{
+		if (g_iPlayerHandicap[client] == 0)
+			CPrintToChat(client, "%t","NoCurrentHandicap",g_iPlayerHandicap[client]);
+		else
+			CPrintToChat(client, "%t","CurrentHandicap",g_iPlayerHandicap[client]);
+	} else {
+		decl String:argstr[64];
+		GetCmdArgString(argstr, sizeof(argstr));
+		new argint = StringToInt(argstr);
+		
+		if (StrEqual(argstr, "off", false))
+		{
+			CPrintToChat(client, "%t", "HandicapDisabled");
+			g_iPlayerHandicap[client] = 0;
+			return Plugin_Handled;
+		}
+		
+		if (argint > RoundToNearest(float(g_iPlayerMaxHP[client])*g_fArenaHPRatio[arena_index]))
+		{
+			CPrintToChat(client, "%t","InvalidHandicap");
+			g_iPlayerHandicap[client] = 0;
+		} else if (argint <= 0) {
+			CPrintToChat(client, "%t","InvalidHandicap");
+		} else {
+			g_iPlayerHandicap[client] = argint;
+			
+			//If the client currently has more health than their handicap allows, lower it to the proper amount.
+			if (IsPlayerAlive(client) && g_iPlayerHP[client] > g_iPlayerHandicap[client])
+			{
+				if (g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index])
+				{
+					//Prevent an possible exploit where a player could restore their buff if it decayed naturally without them taking damage.
+					if (GetEntProp(client, Prop_Data, "m_iHealth") > g_iPlayerHandicap[client])
+					{
+						SetEntProp(client, Prop_Data, "m_iHealth", g_iPlayerHandicap[client]);
+						g_iPlayerHP[client] = g_iPlayerHandicap[client];
+					}
+				} else {
+					g_iPlayerHP[client] = g_iPlayerHandicap[client];
+				}
+				
+				//Update overlay huds to reflect health change.
+				new player_slot = g_iPlayerSlot[client],
+					foe_slot = player_slot==SLOT_ONE ? SLOT_TWO : SLOT_ONE,
+					foe = g_iArenaQueue[arena_index][foe_slot];
+				ShowPlayerHud(client);
+				ShowPlayerHud(foe);
+				ShowSpecHudToArena(g_iPlayerArena[client]);
+			}
+		}
+	}
+	
 	return Plugin_Handled;
 }
 
@@ -2665,10 +2731,6 @@ public Event_PlayerSpawn(Handle:event,const String:name[],bool:dontBroadcast)
 	g_tfctPlayerClass[client] = TF2_GetPlayerClass(client);
 	
 	ResetClientAmmoCounts(client);
-	
-	new pri_weap = GetPlayerWeaponSlot(client, 0);
-	if(IsValidEntity(pri_weap))
-		Client_SetActiveWeapon(client, pri_weap); 
 	
 	if(g_iPlayerSlot[client] != SLOT_ONE && g_iPlayerSlot[client] != SLOT_TWO)
 		ChangeClientTeam(client, TEAM_SPEC);
@@ -3460,15 +3522,3 @@ stock FindEntityByClassname2(startEnt, const String:classname[])
 
 	return FindEntityByClassname(startEnt, classname);
 }
-
-/* Client_SetActiveWeapon(client, weapon)
- * 
- * Changes the active/current weapon of a player by Index. 
- * Note: No changing animation will be played ! 
- * Borrowed from smlib: http://www.sourcemodplugins.org/
- * -------------------------------------------------------------------------- */
-stock Client_SetActiveWeapon(client, weapon) 
-{ 
-    SetEntPropEnt(client, Prop_Data, "m_hActiveWeapon", weapon); 
-    ChangeEdictState(client, FindDataMapOffs(client, "m_hActiveWeapon")); 
-}  

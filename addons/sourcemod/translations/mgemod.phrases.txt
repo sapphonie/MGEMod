@@ -167,7 +167,11 @@
 	}
 	"Cmd_Hud"
 	{
-		"en"			"[MGEMod] hud - Toggle text hud overlay."
+		"en"			"[MGEMod] hud\t - Toggle text hud overlay."
+	}
+	"Cmd_Handicap"
+	{
+		"en"			"[MGEMod] handicap - Reduce your maximum HP. Type '!handicap off' to disable."
 	}
 	"NoClassChange"
 	{
@@ -185,5 +189,27 @@
 	"StatsRestoredDown"
 	{
 		"en"			"Database is up, but stats are administratively down."
+	}
+	"MustJoinArena"
+	{
+		"en"			"{olive}You must join an arena to do that."
+	}
+	"NoCurrentHandicap"
+	{
+		"#format"		"{1:i}"
+		"en"			"{olive}You currently do not have a handicap."
+	}
+	"CurrentHandicap"
+	{
+		"#format"		"{1:i}"
+		"en"			"{olive}Your current handicap is {lightgreen}{1} {olive}maximum HP."
+	}
+	"InvalidHandicap"
+	{
+		"en"			"{olive}Your desired handicap is invalid. Disabling handicap."
+	}
+	"HandicapDisabled"
+	{
+		"en"			"{olive}Handicap disabled."
 	}
 }

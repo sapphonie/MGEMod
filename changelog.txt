@@ -1,3 +1,24 @@
+1.0.3
+	Additions:
+	+ Added handicap system.
+		- Used to lower your maximum health. Cannot be used to raise health.
+		- Type "!handicap <number>" to set your handicap. Example: '!handicap 100' will set your max health to 100.
+		- Type "!handicap off" to disable.
+
+	Fixes:
+	- Fixed a regression that caused the !mgehelp chat command to not work.
+	- Fixed a regression that caused mgemod_dbconfig, mgemod_bball_particle_red, and mgemod_bball_particle_blue to not detect changes.
+	- Fixed some client validity checks that were too strict, causing kicked and lagged out players to not get processed correctly.
+		- As a result, they will no longer interfere with queues or cause errorlog spam.
+	
+	Thanks:
+	- Thrawn2 for pointing me in the right direction regarding kicked clients.
+	- Bombz for helping me test and pointing out the convar regressions.
+
+1.0.2 - March 10th, 2012
+	Fixes:
+	- Fixed an issue that caused gameplay to get buggy after mapchanges.
+
 1.0.1 - March 9th, 2012
 	Fixes:
 	- Fixed a bug in the stats system that prevented the plugin from loading (oops).
