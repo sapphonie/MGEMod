@@ -493,7 +493,7 @@ public OnClientPostAdminCheck(client)
 * -------------------------------------------------------------------------- */
 public OnClientDisconnect(client)
 {
-	if (client > 1 && client < MaxClients && g_iPlayerArena[client])
+	if (IsValidClient(client) && g_iPlayerArena[client])
 	{
 		RemoveFromQueue(client,true);
 	} else {
@@ -502,6 +502,11 @@ public OnClientDisconnect(client)
 			after_leaver_slot = player_slot + 1,
 			foe_slot = player_slot==SLOT_ONE ? SLOT_TWO : SLOT_ONE,
 			foe = g_iArenaQueue[arena_index][foe_slot];
+		
+		g_iPlayerArena[client] = 0;
+		g_iPlayerSlot[client] = 0;
+		g_iArenaQueue[arena_index][player_slot] = 0;
+		g_iPlayerHandicap[client] = 0;
 			
 		if (g_iArenaQueue[arena_index][SLOT_TWO+1])
 		{
