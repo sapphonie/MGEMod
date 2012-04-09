@@ -546,7 +546,7 @@ function DOA($i1, $i2)
 
 		case 'players':
 		
-			$dbconn = mysql_connect($mysql_server,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
+			$dbconn = mysql_connect($mysql_host,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
 			mysql_select_db($mysql_db,$dbconn) or die(mysql_error($dbconn));
 			
 			$pid = $page * 30;
@@ -597,7 +597,7 @@ function DOA($i1, $i2)
 
 		case 'view':
 		
-			$dbconn = mysql_connect($mysql_server,$mysql_user,$mysql_pass);
+			$dbconn = mysql_connect($mysql_host,$mysql_user,$mysql_pass);
 			$player = mysql_real_escape_string($_REQUEST['player']);
 
 			//Get info on the players duels
@@ -737,7 +737,7 @@ function DOA($i1, $i2)
 
 		case 'pickups24':
 		
-			$dbconn = mysql_connect($mysql_server,$mysql_user,$mysql_pass);
+			$dbconn = mysql_connect($mysql_host,$mysql_user,$mysql_pass);
 			mysql_select_db($mysql_db, $dbconn);
 			
 			//WHERE time>=\'' . (time() - 3600) . '\'
@@ -782,7 +782,7 @@ function DOA($i1, $i2)
 				$newcache = true;
 			}
 		
-			$dbconn = mysql_connect($mysql_server,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
+			$dbconn = mysql_connect($mysql_host,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
 			mysql_select_db($mysql_db,$dbconn) or die(mysql_error($dbconn));
 			
 			//WHERE time>=\'' . (time() - 3600) . '\'
@@ -825,7 +825,7 @@ function DOA($i1, $i2)
 
 		case 'viewpickup':
 			
-			$dbconn = mysql_connect($mysql_server,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
+			$dbconn = mysql_connect($mysql_host,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
 			$gametime = $_REQUEST['id'];
 			
 			//Query database for info
@@ -991,7 +991,7 @@ function DOA($i1, $i2)
 		case 'maps':
 			
 			//MySQL connect
-			$dbconn = mysql_connect($mysql_server,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
+			$dbconn = mysql_connect($mysql_host,$mysql_user,$mysql_pass) or die(mysql_error($dbconn));
 			mysql_select_db($mysql_db,$dbconn) or die(mysql_error($dbconn));
 			
 			//Get info on maps played
