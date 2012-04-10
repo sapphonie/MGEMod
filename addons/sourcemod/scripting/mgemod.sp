@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.3" 
+#define PL_VERSION "1.0.4" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 15
 #define MAXSPAWNS 15
@@ -38,7 +38,8 @@
 
 //stat tracking
 #define MAXWEAPONS 63 // Max # of weapons to track stats for.
-#define MAX_WEAP_NAME_LEN 64
+#define MAX_WEAP_NAME_LEN 129
+#define MAX_WEAP_NAME_LEN_DIRTY 64
 
 //#define DEBUG_LOG
 
@@ -1579,7 +1580,7 @@ bool:LoadStatsCfg()
 			do
 			{
 				g_iWeaponCount++;
-				KvGetSectionName(kv, g_sWeaponName[g_iWeaponCount], MAX_WEAP_NAME_LEN);
+				KvGetSectionName(kv, g_sWeaponName[g_iWeaponCount], MAX_WEAP_NAME_LEN_DIRTY);
 				g_iWeaponIdx[g_iWeaponCount] = KvGetNum(kv, "idx");
 				g_iWeaponMaxDmg[g_iWeaponCount] = KvGetNum(kv, "maxdmg", -1);
 				g_bWeaponProjectile[g_iWeaponCount] = KvGetNum(kv, "projectile", 0) ? true : false ;
@@ -2407,15 +2408,18 @@ public Action:Command_First(client, args)
 	}
 	
 	// Couldn't find an arena with only one person in the queue, so find one with none.
-	for(new i = 1; i <= g_iArenaCount; i++)
+	if(!g_iPlayerArena[client])
 	{
-		if(!g_iArenaQueue[i][SLOT_TWO] && g_iPlayerArena[client] != i)
+		for(new i = 1; i <= g_iArenaCount; i++)
 		{
-			if(g_iPlayerArena[client])
-				RemoveFromQueue(client, true);
-			
-			AddInQueue(client, i, true);
-			return Plugin_Handled;
+			if(!g_iArenaQueue[i][SLOT_TWO] && g_iPlayerArena[client] != i)
+			{
+				if(g_iPlayerArena[client])
+					RemoveFromQueue(client, true);
+				
+				AddInQueue(client, i, true);
+				return Plugin_Handled;
+			}
 		}
 	}
 	
@@ -2544,6 +2548,14 @@ PrepareSQL() // Opens the connection to the database, and creates the tables if 
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_weapons (steamid VARCHAR(32) NOT NULL, gametime INT(11) NOT NULL, weapon VARCHAR(32) NOT NULL, hits INT(4) NOT NULL, shots INT(4) NOT NULL, accuracy FLOAT(4) NOT NULL, damage INT(6) NOT NULL, directs INT(4) NOT NULL, airshots INT(4) NOT NULL) ENGINE = InnoDB");
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_career_weapons (steamid VARCHAR(32) NOT NULL, weapon VARCHAR(32) NOT NULL, hits INT(4) NOT NULL, shots INT(4) NOT NULL, damage INT(6) NOT NULL, directs INT(4) NOT NULL, airshots INT(4) NOT NULL, PRIMARY KEY (steamid, weapon)) ENGINE = InnoDB");
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) ENGINE = InnoDB");
+	}
+	
+	//Now that we have a valid database connection, we can (and must) sanitize the weapon name strings.
+	new String:weaponname_dirty[MAX_WEAP_NAME_LEN_DIRTY];
+	for(new i = 0; i <= g_iWeaponCount; ++i)
+	{
+		strcopy(weaponname_dirty, MAX_WEAP_NAME_LEN_DIRTY, g_sWeaponName[i]);
+		SQL_EscapeString(db, weaponname_dirty, g_sWeaponName[i], MAX_WEAP_NAME_LEN);
 	}
 }
 
@@ -2846,6 +2858,7 @@ public Action:Event_PlayerHurt(Handle:event,const String:name[],bool:dontBroadca
 	else if (g_bArenaAmmomod[arena_index])
 		g_iPlayerHP[victim] -= iDamage;
 	
+	//TODO: Look into getting rid of the crutch. Possible memory leak/performance issue?
 	g_bPlayerRestoringAmmo[attacker] = false;		//inf ammo crutch
 	
 	if(g_bArenaAmmomod[arena_index] || g_bArenaMidair[arena_index] || g_bArenaEndif[arena_index])

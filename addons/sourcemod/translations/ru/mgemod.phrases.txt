@@ -1,4 +1,4 @@
-﻿// colors:
+// colors:
 // player names - {lightgreen}
 // arena name - {greeen}
 // info/tip - {olive}
@@ -185,5 +185,27 @@
 	"StatsRestoredDown"
 	{
 		"ru"			"База данных восстановлена, но статистика выключена."
+	}
+	"MustJoinArena"
+	{
+		"ru"			"{olive}Чтобы выполнить данную команду вы обязаны зайти на арену."
+	}
+	"NoCurrentHandicap"
+	{
+		"#format"		"{1:i}"
+		"ru"			"{olive}На данный момент у вас отключен лимит максимального здоровья."
+	}
+	"CurrentHandicap"
+	{
+		"#format"		"{1:i}"
+		"ru"			"{olive}Ваше максимальное здоровье равно {lightgreen}{1} хп."
+	}
+	"InvalidHandicap"
+	{
+		"ru"			"{olive}Вы выбрали недопустимое значение для максимального здоровья."
+	}
+	"HandicapDisabled"
+	{
+		"ru"			"{olive}Лимит здоровья отключен."
 	}
 }

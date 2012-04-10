@@ -1,4 +1,15 @@
-1.0.3
+1.0.4
+	Fixes:
+		- Slightly tweaked !first command logic so that if you are already in an arena waiting for a game, it won't put you into another empty arena.
+		- Weapon names are now properly sanitized in the stats system.
+		- Reverted Endif to infinite ammo by default. (Can't be assed to make infinite reserve ammo on a per-arena basis.)
+		- Updated Russian and German translations.
+		- WebUI now properly supports remote databases. Thanks to jameless for the fix.
+
+	Tweaks:
+		- BBall now has a default capture limit of 10, and a default respawn time of 2 seconds. As always, this can be changed to your liking in mgemod_spawns.cfg.
+		
+1.0.3 - March 19th, 2012
 	Additions:
 	+ Added handicap system.
 		- Used to lower your maximum health. Cannot be used to raise health.
@@ -8,7 +19,7 @@
 	Fixes:
 	- Fixed a regression that caused the !mgehelp chat command to not work.
 	- Fixed a regression that caused mgemod_dbconfig, mgemod_bball_particle_red, and mgemod_bball_particle_blue to not detect changes.
-	- Fixed some client validity checks that were too strict, causing kicked and lagged out players to not get processed correctly.
+	- Fixed improper player disconnect handling that caused kicked and lagged out players to not get processed correctly.
 		- As a result, they will no longer interfere with queues or cause errorlog spam.
 	
 	Thanks:
