@@ -34,7 +34,7 @@ class mgestats
     //MySQL query function, returns an array of the output
     function mysql_query_stats($sql)
     {
-        $conn = mysql_connect(($this->host.":".$this->mysql_port), $this->mysql_user, $this->mysql_pass);
+        $conn = mysql_connect(($this->mysql_host.":".$this->mysql_port), $this->mysql_user, $this->mysql_pass);
         mysql_select_db($this->mysql_db, $conn);
         $result = mysql_query($sql);
 
