@@ -3133,9 +3133,7 @@ public Action:Timer_WelcomePlayer(Handle:timer, any:userid)
 		return;
 	
 	CPrintToChat(client, "%t", "Welcome1", PL_VERSION);
-	if(StrContains(g_sMapName, "mge_", false) == 0)
-		CPrintToChat(client, "%t", "Welcome2");
-	CPrintToChat(client, "%t", "Welcome3");
+	CPrintToChat(client, "%t", "Welcome2");
 	g_hWelcomeTimer[client] = INVALID_HANDLE;
 }
 
