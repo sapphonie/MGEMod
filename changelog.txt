@@ -1,4 +1,22 @@
-1.0.4
+1.0.5 - 
+	Additions:
+		+ mge_training_v8_beta2.bsp, created by Jstn7477
+			- Open-source (not quite yet, .vmf to be distributed with map soon)
+			- Added Gravelpit C arena.
+			- Added Process Middle arena.
+			- Added Turris arena.
+			- Added Trainyard_cool arena.
+			- Added Duel_Duel arena.
+			- Refined spawns on many arenas in an effort to promote faster and fairer gameplay.
+			- Texture optimizations
+			- Geometry optimizations
+			- Removal of several out-of-bounds and clipping exploits.
+			- These optimzations have resulted in increased performance and a greatly reduced file size.
+			
+	Tweaks:
+		- Increased arena limit to 31, up from 15.
+		
+1.0.4 - April 10th, 2012
 	Fixes:
 		- Slightly tweaked !first command logic so that if you are already in an arena waiting for a game, it won't put you into another empty arena.
 		- Weapon names are now properly sanitized in the stats system.

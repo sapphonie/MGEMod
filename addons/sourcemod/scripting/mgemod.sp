@@ -8,9 +8,9 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.4" 
+#define PL_VERSION "1.0.5" 
 #define MAX_FILE_LEN 80
-#define MAXARENAS 15
+#define MAXARENAS 31
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
 #define MAPCONFIGFILE "configs/mgemod_spawns.cfg"
