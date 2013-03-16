@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.5" 
+#define PL_VERSION "1.0.6" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -3273,8 +3273,8 @@ public Action:Timer_Tele(Handle:timer, any:userid)
 	new RandomSpawn[g_iArenaSpawns[arena_index]+1];
 	
 	// Fill the array with the spawns.
-	for(new i = 1; i <= g_iArenaSpawns[arena_index]; i++)
-		RandomSpawn[i] = i;
+	for(new i = 0; i < g_iArenaSpawns[arena_index]; i++)
+		RandomSpawn[i] = i + 1;
 	
 	// Shuffle them into a random order.
 	SortIntegers(RandomSpawn, g_iArenaSpawns[arena_index], Sort_Random);

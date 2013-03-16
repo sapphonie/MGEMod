@@ -1,5 +1,0 @@
-- Add accuracy display to player HUD
-- Remove advanced stats
-- Implement completely browsable in-game ELO menu, not just !top5
-	- !rank might already do this
-- Fix process sewer spawn that makes you get stuck
