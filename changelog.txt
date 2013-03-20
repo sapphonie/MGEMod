@@ -1,9 +1,13 @@
-1.0.5 - 
+1.0.7 - March 19th, 2013
+	Fixes:
+		- Fixed spawn bug for real this time.
+
+1.0.6 - March 15th, 2013
 	Fixes:
 		- Fixed spawn bug that caused players to spawn at the origin or otherwise outside of their arena.
 			- Thanks to Cprice for this fix.
-			
-1.0.5 - 
+
+1.0.5 - January 6th, 2013
 	Additions:
 		+ mge_training_v8_beta2.bsp, created by Jstn7477
 			- Open-source (not quite yet, .vmf to be distributed with map soon)

@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "1.0.6" 
+#define PL_VERSION "1.0.7" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -3282,7 +3282,7 @@ public Action:Timer_Tele(Handle:timer, any:userid)
 	// Now when the array is gone through sequentially, it will still provide a random spawn.
 	new Float:besteffort_dist;
 	new besteffort_spawn;
-	for(new i = 1; i <= g_iArenaSpawns[arena_index]; i++)
+	for(new i = 0 ; i < g_iArenaSpawns[arena_index]; i++)
 	{
 		new client_slot = g_iPlayerSlot[client];
 		new foe_slot = (client_slot==SLOT_ONE) ? SLOT_TWO : SLOT_ONE;
