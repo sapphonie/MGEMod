@@ -1,3 +1,26 @@
+2.0.0 - April 15th, 2013
+
+	Additions:
+		-2v2 arenas
+		-KOTH arenas
+		-Turris arenas
+		-Ultiduo arenas
+		-!swap command in ultiduo that allows you to ask your teammate to swap classes with you
+		-!top5 is now a navigable ELO ranking menu that lets you view all players in the database
+		+ mge_dueling_v1
+			- Open-source (not quite yet, .vmf to be distributed with map soon)
+			-Ultiduo 2x
+			-Spireking 2x
+			-Turris 2x
+			-BBall 1v1
+			-BBall 2v2
+
+	Bug fixes:
+		-Flag in bball is now actually a flag instead of an ammopack
+
+	Tweaks:
+		-Remove advanced stats for better performance
+
 1.0.7 - March 19th, 2013
 	Fixes:
 		- Fixed spawn bug for real this time.
