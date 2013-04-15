@@ -110,7 +110,11 @@
 	}
 	"Welcome2"
 	{
-		"de"			"{olive}Plugin von{default}: {lightgreen}Lange{default}, basierend auf {lightgreen}kAmmomod"
+		"de"			"{olive}Map von{default}: {lightgreen}Swaty, Jstn7477 {default}und {lightgreen}CB"
+	}
+	"Welcome3"
+	{
+		"de"			"{olive}Plugin von{default}: {lightgreen}Lange{default} und {lightgreen}Cprice{default}, basierend auf {lightgreen}kAmmomod"
 	}
 	"Top5Title" //No colors here.
 	{

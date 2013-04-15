@@ -110,7 +110,11 @@
 	}
 	"Welcome2"
 	{
-		"ru"			"{olive}Плагин от{default}: {lightgreen}Lange{default}, созданный на основе {lightgreen}kAmmomod"
+		"ru"			"{olive}Карта создана{default}: {lightgreen}Swaty, Jstn7477 {default}и {lightgreen}CB"		
+	}
+	"Welcome3"
+	{
+		"ru"			"{olive}Плагин от{default}: {lightgreen}Lange{default} & {lightgreen}Cprice{default}, созданный на основе {lightgreen}kAmmomod"
 	}
 	"Top5Title" //No colors here.
 	{
