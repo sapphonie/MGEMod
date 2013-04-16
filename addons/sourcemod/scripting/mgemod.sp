@@ -1266,7 +1266,7 @@ ShowPlayerHud(client)
 				SetHudTextParams(0.80, 0.80, HUDFADEOUTTIME, 0,0,255,255); // Blue
 			//Set it white if no one is capping
 			else
-				SetHudTextParams(0.80, 0.80, HUDFADEOUTTIME, 255,255,255,255);
+				SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 255,255,255,255);
 			//Show the text
 			ShowSyncHudText(client, hm_KothCap, "Point Capture: %.1f", g_fKothCappedPercent[arena_index]);
 		}
