@@ -1008,8 +1008,11 @@ public Action:OnTouchHoop(entity, other)
 		
 		if(g_bFourPersonArena[arena_index])
 		{
-			EmitSoundToClient(client_teammate, "vo/intel_teamcaptured.wav");
-			EmitSoundToClient(foe_teammate, "vo/intel_enemycaptured.wav");
+			//This shouldn't be necessary but I'm getting invalid clients for some reason.
+			if(IsValidClient(client_teammate))
+				EmitSoundToClient(client_teammate, "vo/intel_teamcaptured.wav");
+			if(IsValidClient(foe_teammate))
+				EmitSoundToClient(foe_teammate, "vo/intel_enemycaptured.wav");
 		}
 			
 		ShowSpecHudToArena(arena_index);
@@ -1556,8 +1559,9 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 
 	new after_leaver_slot = player_slot + 1; 
 	
-	//I beleive I don't need to do this anymore
-	if(g_bTimerRunning[arena_index])
+	//I beleive I don't need to do this anymore BUT
+	//If the player was in the arena, and the timer was running, kill it
+	if(((player_slot <= SLOT_TWO) || (g_bFourPersonArena[arena_index] && player_slot <= SLOT_FOUR)) && g_bTimerRunning[arena_index])
 	{
 		KillTimer(g_tKothTimer[arena_index]);
 		g_bTimerRunning[arena_index] = false;
@@ -3650,7 +3654,8 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	if(!g_bArenaEndif[arena_index])		// Endif does not need to display health, since it is one-shot kills.
 	{
 		//We must get the player that shot you last in 4 player arenas
-		if(g_bFourPersonArena[arena_index] && IsPlayerAlive(attacker))
+		//The valid client check shouldn't be necessary but I'm getting invalid clients here for some reason
+		if(g_bFourPersonArena[arena_index] && IsValidClient(attacker) && IsPlayerAlive(attacker))
 		{
 			if((g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index] || g_bArenaKoth[arena_index]) && (victim != attacker))
 				CPrintToChat(victim, "%t", "HPLeft", GetClientHealth(attacker));
