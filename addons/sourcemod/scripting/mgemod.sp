@@ -3267,7 +3267,7 @@ public Action:Command_Handicap(client, args)
 *
 * When a player drops the intel in BBall.
 * -------------------------------------------------------------------------- */
-public Action:Command_DropItem(client, command, argc)
+public Action:Command_DropItem(client, const String:command[], argc)
 {	
 	new arena_index = g_iPlayerArena[client];
 	
