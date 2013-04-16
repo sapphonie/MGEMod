@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0" 
+#define PL_VERSION "2.0.1" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -1263,10 +1263,10 @@ ShowPlayerHud(client)
 			//Show the capture point percent
 			//set it red if red team is capping
 			if(g_iCappingTeam[arena_index] == TEAM_RED)
-				SetHudTextParams(0.80, 0.80, HUDFADEOUTTIME, 255,0,0,255); // Red
+				SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 255,0,0,255); // Red
 			//Set it blue if blu team is capping
 			else if(g_iCappingTeam[arena_index] == TEAM_BLU)
-				SetHudTextParams(0.80, 0.80, HUDFADEOUTTIME, 0,0,255,255); // Blue
+				SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 0,0,255,255); // Blue
 			//Set it white if no one is capping
 			else
 				SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 255,255,255,255);
@@ -1560,7 +1560,7 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 	new after_leaver_slot = player_slot + 1; 
 	
 	//I beleive I don't need to do this anymore BUT
-	//If the player was in the arena, and the timer was running, kill it
+	//If the player was in the arena, and the timer was running, kill itw
 	if(((player_slot <= SLOT_TWO) || (g_bFourPersonArena[arena_index] && player_slot <= SLOT_FOUR)) && g_bTimerRunning[arena_index])
 	{
 		KillTimer(g_tKothTimer[arena_index]);

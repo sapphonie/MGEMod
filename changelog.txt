@@ -1,3 +1,10 @@
+2.0.1 - April 15th, 2013
+	Bug fixes:
+		-Fixed HUD text bug for KBN hud
+		-Fixed timer dieing when a player in queue disconnects
+		-Fixed some Invalid client bugs
+
+
 2.0.0 - April 15th, 2013
 
 	Additions:
