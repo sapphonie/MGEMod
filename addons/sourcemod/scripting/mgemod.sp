@@ -326,6 +326,8 @@ public OnPluginStart()
 	RegAdminCmd("loc", Command_Loc, ADMFLAG_BAN, "Shows client origin and angle vectors");
 	RegAdminCmd("botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
 	RegAdminCmd("conntest", Command_ConnectionTest, ADMFLAG_BAN, "MySQL connection test");
+	
+	AddCommandListener(Command_DropItem, "dropitem");
 
 	// Create the HUD text handles for later use.
 	hm_HP = CreateHudSynchronizer();
@@ -3259,6 +3261,45 @@ public Action:Command_Handicap(client, args)
 	}
 
 	return Plugin_Handled;
+}
+
+/* OnDropIntel(client, command, argc)
+*
+* When a player drops the intel in BBall.
+* -------------------------------------------------------------------------- */
+public Action:Command_DropItem(client, command, argc)
+{	
+	new arena_index = g_iPlayerArena[client];
+	
+	if(g_bArenaBBall[arena_index])
+	{
+		if (g_bPlayerHasIntel[client])
+		{
+			g_bPlayerHasIntel[client] = false;
+			new Float:pos[3];
+			GetClientAbsOrigin(client, pos);
+			pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
+
+			if (g_iBBallIntel[arena_index] == -1)
+				g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
+			else
+				LogError("[%s] Player dropped the intel, but intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
+	
+	
+			//This should fix the ammopack not being turned into a briefcase
+			DispatchKeyValue(g_iBBallIntel[arena_index], "powerup_model", MODEL_BRIEFCASE);
+			TeleportEntity(g_iBBallIntel[arena_index], pos, NULL_VECTOR, NULL_VECTOR);
+			DispatchSpawn(g_iBBallIntel[arena_index]);
+			SetEntProp(g_iBBallIntel[arena_index], Prop_Send, "m_iTeamNum", 1, 4);
+			//Doesn't work anymore
+			//SetEntityModel(g_iBBallIntel[arena_index], MODEL_BRIEFCASE);
+			SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+			SDKHook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+			AcceptEntityInput(g_iBBallIntel[arena_index], "Enable");
+
+			EmitSoundToClient(client, "vo/intel_teamdropped.wav");
+		}
+	}
 }
 
 //blocking sounds
