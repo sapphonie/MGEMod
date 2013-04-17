@@ -3300,6 +3300,8 @@ public Action:Command_DropItem(client, const String:command[], argc)
 			EmitSoundToClient(client, "vo/intel_teamdropped.wav");
 		}
 	}
+	
+	return Plugin_Continue;
 }
 
 //blocking sounds
