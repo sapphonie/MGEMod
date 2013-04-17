@@ -732,7 +732,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] += 7 / cap;
+							g_fCappedTime[arena_index2] += float(7) / float(cap);
 						}
 						g_iCappingTeam[arena_index2] = TEAM_RED;
 						continue;
@@ -783,7 +783,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] += 7 / cap;
+							g_fCappedTime[arena_index2] += float(7) / float(cap);
 						}
 						g_iCappingTeam[arena_index2] = TEAM_BLU;
 						continue;
