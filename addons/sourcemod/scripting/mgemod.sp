@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.1" 
+#define PL_VERSION "2.0.2" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -326,9 +326,9 @@ public OnPluginStart()
 	RegAdminCmd("loc", Command_Loc, ADMFLAG_BAN, "Shows client origin and angle vectors");
 	RegAdminCmd("botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
 	RegAdminCmd("conntest", Command_ConnectionTest, ADMFLAG_BAN, "MySQL connection test");
-	
-	AddCommandListener(Command_DropItem, "dropitem");
 
+	AddCommandListener(Command_DropItem, "dropitem");
+	
 	// Create the HUD text handles for later use.
 	hm_HP = CreateHudSynchronizer();
 	hm_Score = CreateHudSynchronizer();
@@ -1562,7 +1562,7 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 	new after_leaver_slot = player_slot + 1; 
 	
 	//I beleive I don't need to do this anymore BUT
-	//If the player was in the arena, and the timer was running, kill itw
+	//If the player was in the arena, and the timer was running, kill it
 	if(((player_slot <= SLOT_TWO) || (g_bFourPersonArena[arena_index] && player_slot <= SLOT_FOUR)) && g_bTimerRunning[arena_index])
 	{
 		KillTimer(g_tKothTimer[arena_index]);
@@ -1878,15 +1878,20 @@ CalcELO(winner, loser)
 	if(IsValidClient(loser) && !g_bNoDisplayRating)
 		CPrintToChat(loser, "%t","LostPoints",loserscore);
 
+	//This is necessary for when a player leaves a 2v2 arena that is almost done.
+	//I don't want to penalize the player that doesn't leave, so only the winners/leavers ELO will be effected.
+	new winner_team_slot = (g_iPlayerSlot[winner] > 2) ? (g_iPlayerSlot[winner] - 2) : g_iPlayerSlot[winner];
+	new loser_team_slot = (g_iPlayerSlot[loser] > 2) ? (g_iPlayerSlot[loser] - 2) : g_iPlayerSlot[loser];
+	
 	// DB entry for this specific duel.
 	if(g_bUseSQLite)
 	{
 		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels VALUES ('%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
-										g_sPlayerSteamID[winner], g_sPlayerSteamID[loser], g_iArenaScore[arena_index][g_iPlayerSlot[winner]], g_iArenaScore[arena_index][g_iPlayerSlot[loser]], g_iArenaFraglimit[arena_index], time, g_sMapName, g_sArenaName[arena_index]);
+										g_sPlayerSteamID[winner], g_sPlayerSteamID[loser], g_iArenaScore[arena_index][winner_team_slot], g_iArenaScore[arena_index][loser_team_slot], g_iArenaFraglimit[arena_index], time, g_sMapName, g_sArenaName[arena_index]);
 		SQL_TQuery(db, SQLErrorCheckCallback, query);
 	} else {
 		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels (winner, loser, winnerscore, loserscore, winlimit, gametime, mapname, arenaname) VALUES ('%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
-										g_sPlayerSteamID[winner], g_sPlayerSteamID[loser], g_iArenaScore[arena_index][g_iPlayerSlot[winner]], g_iArenaScore[arena_index][g_iPlayerSlot[loser]], g_iArenaFraglimit[arena_index], time, g_sMapName, g_sArenaName[arena_index]);
+										g_sPlayerSteamID[winner], g_sPlayerSteamID[loser], g_iArenaScore[arena_index][winner_team_slot], g_iArenaScore[arena_index][loser_team_slot], g_iArenaFraglimit[arena_index], time, g_sMapName, g_sArenaName[arena_index]);
 		SQL_TQuery(db, SQLErrorCheckCallback, query);
 	}
 
@@ -2970,6 +2975,9 @@ public Action:Command_JoinClass(client, args)
 						}
 					}
 					CreateTimer(0.1,Timer_ResetPlayer,GetClientUserId(client));
+					//Reset Hadnicap on class change to prevent an exploit where players could set their handicap to 299 as soldier
+					//And then play scout as 299
+					g_iPlayerHandicap[client] = 0;
 					ShowSpecHudToArena(g_iPlayerArena[client]);
 					return Plugin_Continue;
 					
@@ -3640,10 +3648,14 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	new victim = GetClientOfUserId(GetEventInt(event, "userid"));	
 	new arena_index = g_iPlayerArena[victim];
 	new victim_slot = g_iPlayerSlot[victim]; 
-	//If we forced a respawn don't do anything
+	
+	//If we forced a respawn don't apply a spawn timer penalty
+	//This is a sloppy fix for random dark room respawns, and causes players to be respawned twice, which can be obnoxious/cause confusion.
+	//TODO: Fix properly
 	if(g_bForceRespawn[arena_index][victim_slot])
 	{
 		g_bForceRespawn[arena_index][victim_slot] = false;
+		CreateTimer(0.1,Timer_ResetPlayer,GetClientUserId(victim));
 		return Plugin_Handled;
 	}
 	
@@ -3669,7 +3681,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 
 	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
 		
-	if(g_iArenaStatus[arena_index] < AS_FIGHT && attacker && IsPlayerAlive(attacker))
+	if(g_iArenaStatus[arena_index] < AS_FIGHT && IsValidClient(attacker) && IsPlayerAlive(attacker))
 	{
 		TF2_RegeneratePlayer(attacker);
 		new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[attacker])*g_fArenaHPRatio[arena_index]);
@@ -3696,6 +3708,9 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	{
 		//We must get the player that shot you last in 4 player arenas
 		//The valid client check shouldn't be necessary but I'm getting invalid clients here for some reason
+		//This may be caused by players killing themselves in 1v1 arenas without being attacked, or dieing after
+		//A player disconnects but before the arena status transitions out of fight mode?
+		//TODO: check properly
 		if(g_bFourPersonArena[arena_index] && IsValidClient(attacker) && IsPlayerAlive(attacker))
 		{
 			if((g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index] || g_bArenaKoth[arena_index]) && (victim != attacker))
@@ -3861,7 +3876,8 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 			
 		}
 		
-		//TODO: Check to see if its koth and apply a spawn penalty if needed
+		
+		//TODO: Check to see if its koth and apply a spawn penalty if needed depending on who's capping
 		if(g_bArenaBBall[arena_index] || g_bArenaKoth[arena_index])
 		{
 			CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
@@ -4591,6 +4607,8 @@ public Action:Timer_CountDownKoth(Handle:timer, any:arena_index)
 		if(g_fTotalTime[arena_index] != 0)
 		{
 			new Float: cap = FloatDiv(float(g_fCappedTime[arena_index]) * 8.4, float(g_fTotalTime[arena_index]));
+			if(!g_bArenaUltiduo[arena_index])
+				cap = cap * 1.5;
 			g_fKothCappedPercent[arena_index] += cap;
 		}
 		
