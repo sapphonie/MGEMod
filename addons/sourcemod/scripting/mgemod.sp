@@ -687,7 +687,6 @@ public OnGameFrame()
 	}
 	for(new arena_index2 = 1; arena_index2 <= g_iArenaCount; ++arena_index2)
 	{
-		//TODO: Check to see if player is using a paintrain and change cap time accordingly
 		if(g_bArenaKoth[arena_index2] && g_iArenaStatus[arena_index2] == AS_FIGHT)
 		{
 			g_fTotalTime[arena_index2] += 7;
