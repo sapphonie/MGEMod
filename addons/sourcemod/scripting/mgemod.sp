@@ -118,7 +118,7 @@ new String:g_sArenaName[MAXARENAS+1][64],
 	g_iArenaCount,
 	g_fTotalTime[MAXARENAS+1],
 	g_iCappingTeam[MAXARENAS+1],
-	g_fCappedTime[MAXARENAS+1],
+	Float:g_fCappedTime[MAXARENAS+1],
 	g_iCapturePoint[MAXARENAS+1],
 	g_iDefaultCapTime[MAXARENAS+1],
 	g_iKothTimer[MAXARENAS+1][4],		// [what arena is the cap point in][Team Red or Team Blu Time left]
@@ -273,7 +273,7 @@ public OnPluginStart()
 	for(new i = 0; i < MAXARENAS+1; ++i)
 	{
 		g_bTimerRunning[i] = false;
-		g_fCappedTime[i] = 0;
+		g_fCappedTime[i] = 0.0;
 		g_fTotalTime[i] = 0;
 		for(new j = 0; j < 5; ++j)
 			g_bForceRespawn[i][j] = false;
@@ -687,7 +687,6 @@ public OnGameFrame()
 	}
 	for(new arena_index2 = 1; arena_index2 <= g_iArenaCount; ++arena_index2)
 	{
-		//TODO: Check to see if player is using a paintrain and change cap time accordingly
 		if(g_bArenaKoth[arena_index2] && g_iArenaStatus[arena_index2] == AS_FIGHT)
 		{
 			g_fTotalTime[arena_index2] += 7;
@@ -696,41 +695,44 @@ public OnGameFrame()
 				//If RED Team is capping and BLU Team isn't and BLU Team has the point increase the cap time
 				if(!(g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]) && (g_iCappingTeam[arena_index2] == TEAM_RED || g_iCappingTeam[arena_index2] == NEUTRAL))
 				{
-					new cap = false;
+					new cap = 0;
+					
 					if(g_bPlayerTouchPoint[arena_index2][SLOT_ONE])
 					{
-						g_fCappedTime[arena_index2] += 7;
-						//If the player is a scout then add double the cap speed
+						cap++;
+						//If the player is a Scout add one to the cap speed
 						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_ONE]] ==TF2_GetClass("scout"))
-							g_fCappedTime[arena_index2] += 7;
+							cap++;
 						
-						cap = true;
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_ONE], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
 					}
 					if(g_bPlayerTouchPoint[arena_index2][SLOT_THREE])
 					{
-						//If your teammate is also capping
-						if(cap)
-						{
-							//Add at half the speed because diminishing returns
-							g_fCappedTime[arena_index2] += 3.5;
-							//If the player is a scout then add double the cap speed
-							if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_THREE]] == TF2_GetClass("scout"))
-								g_fCappedTime[arena_index2] += 3.5;
-						}
-						//else if you're the only one capping, add at normal speed
-						else
-						{
-							g_fCappedTime[arena_index2] += 7;
-							//If the player is a scout then add double the cap speed
-							if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_THREE]] == TF2_GetClass("scout"))
-								g_fCappedTime[arena_index2] += 7;
-								
-							cap = true;
-						}
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_THREE]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_THREE], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
 					}
-					//If cap time was added, you don't need to evaluate the rest of the loop
+					//Add cap time if needed
 					if(cap)
 					{
+						//True harmonic cap time, yes!
+						for(; cap > 0; cap--)
+						{
+							g_fCappedTime[arena_index2] += FloatDiv(7.0, float(cap));
+						}
 						g_iCappingTeam[arena_index2] = TEAM_RED;
 						continue;
 					}
@@ -744,39 +746,44 @@ public OnGameFrame()
 				//If BLU Team is capping and Team RED isn't and Team RED has the point increase the cap time
 				if(!(g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]) && (g_iCappingTeam[arena_index2] == TEAM_BLU || g_iCappingTeam[arena_index2] == NEUTRAL))
 				{
-					new cap = false;
+					new cap = 0;
+					
 					if(g_bPlayerTouchPoint[arena_index2][SLOT_TWO])
 					{
-						g_fCappedTime[arena_index2] += 7;
-						//If the player is a scout then add double the cap speed
-						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_TWO]] == TF2_GetClass("scout"))
-							g_fCappedTime[arena_index2] += 7;
-						cap = true;
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_TWO]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_TWO], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
 					}
 					if(g_bPlayerTouchPoint[arena_index2][SLOT_FOUR])
 					{
-						//If your teammate is also capping
-						if(cap)
-						{
-							//Add at half the speed because diminishing returns
-							g_fCappedTime[arena_index2] += 3.5;
-							//If the player is a scout then add double the cap speed
-							if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_FOUR]] == TF2_GetClass("scout"))
-								g_fCappedTime[arena_index2] += 3.5;
-						}
-						//else if you're the only one capping, add at normal speed
-						else
-						{
-							g_fCappedTime[arena_index2] += 7;
-							//If the player is a scout then add double the cap speed
-							if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_FOUR]] == TF2_GetClass("scout"))
-								g_fCappedTime[arena_index2] += 7;
-							cap = true;
-						}
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_FOUR]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_FOUR], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
 					}
-					//If cap time was added, you don't need to evaluate the rest of the loop
+					//Add cap time if needed
 					if(cap)
 					{
+						//True harmonic cap time, yes!
+						for(; cap > 0; cap--)
+						{
+							g_fCappedTime[arena_index2] += FloatDiv(7.0, float(cap));
+						}
 						g_iCappingTeam[arena_index2] = TEAM_BLU;
 						continue;
 					}
@@ -787,28 +794,109 @@ public OnGameFrame()
 			
 			//If BLU Team is blocking and RED Team isn't capping and BLU Team has the point increase the cap diminish rate
 			if((g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]) &&
-			(g_iPointState[arena_index2] == NEUTRAL ||  g_iPointState[arena_index2] == TEAM_BLU) && g_iCappingTeam[arena_index2] == TEAM_RED &&
+			(g_iPointState[arena_index2] == NEUTRAL) && g_iCappingTeam[arena_index2] == TEAM_RED &&
 			!(g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]))
 			{
-				g_fCappedTime[arena_index2] -= 7;
-				continue;
+					new cap = 0;
+					
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_TWO])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_TWO]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_TWO], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_FOUR])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_FOUR]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_FOUR], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					//Add cap time if needed
+					if(cap)
+					{
+						//True harmonic cap time, yes!
+						for(; cap > 0; cap--)
+						{
+							g_fCappedTime[arena_index2] -= FloatDiv(7.0, float(cap));
+						}
+						g_iCappingTeam[arena_index2] = TEAM_BLU;
+						continue;
+					}
 			}
 			
 			//If RED Team is blocking and BLU Team isn't capping and RED Team has the point increase the cap diminish rate
 			if((g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]) && 
-			(g_iPointState[arena_index2] == NEUTRAL ||  g_iPointState[arena_index2] == TEAM_RED) && g_iCappingTeam[arena_index2] == TEAM_BLU &&
+			(g_iPointState[arena_index2] == NEUTRAL) && g_iCappingTeam[arena_index2] == TEAM_BLU &&
 			!(g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]))
 			{
-				g_fCappedTime[arena_index2] -= 7;
-				continue;
+					new cap = 0;
+					
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_ONE])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_ONE]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_ONE], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_THREE])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_THREE]] ==TF2_GetClass("scout"))
+							cap++;
+						
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_THREE], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+						
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					//Add cap time if needed
+					if(cap)
+					{
+						//True harmonic cap time, yes!
+						for(; cap > 0; cap--)
+						{
+							g_fCappedTime[arena_index2] -= FloatDiv(7.0, float(cap));
+						}
+						g_iCappingTeam[arena_index2] = TEAM_RED;
+						continue;
+					}
 			}
 			
 			//If both teams are touching the point, do nothing
 			if((g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]) && (g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]))
 				continue;
 				
-			//else, if the point isn't being blocked then remove time capped, remove time at 1/7 the speed
-			g_fCappedTime[arena_index2]--;
+			// If in overtime, revert cap at 6x speed, if not, revert cap slowly
+			if (g_bOvertimePlayed[arena_index][TEAM_RED] || g_bOvertimePlayed[arena_index][TEAM_BLU])
+				g_fCappedTime[arena_index2] -= 6.0;
+			else
+				g_fCappedTime[arena_index2]--;
 		}
 		
 		
@@ -3308,6 +3396,8 @@ public Action:Command_DropItem(client, const String:command[], argc)
 			EmitSoundToClient(client, "vo/intel_teamdropped.wav");
 		}
 	}
+	
+	return Plugin_Continue;
 }
 
 //blocking sounds
@@ -4420,7 +4510,7 @@ public Action:Timer_StartDuel(Handle:timer, any:arena_index)
 		g_iCappingTeam[arena_index] = NEUTRAL;
 		g_iPointState[arena_index] = NEUTRAL;
 		g_fTotalTime[arena_index] = 0;
-		g_fCappedTime[arena_index] = 0;
+		g_fCappedTime[arena_index] = 0.0;
 		g_fKothCappedPercent[arena_index] = 0.0;
 		g_bOvertimePlayed[arena_index][TEAM_RED] = false;
 		g_bOvertimePlayed[arena_index][TEAM_BLU] = false;
@@ -4606,13 +4696,13 @@ public Action:Timer_CountDownKoth(Handle:timer, any:arena_index)
 		}
 		if(g_fTotalTime[arena_index] != 0)
 		{
-			new Float: cap = FloatDiv(float(g_fCappedTime[arena_index]) * 8.4, float(g_fTotalTime[arena_index]));
+			new Float:cap = FloatDiv(g_fCappedTime[arena_index] * 8.4, float(g_fTotalTime[arena_index]));
 			if(!g_bArenaUltiduo[arena_index])
 				cap = cap * 1.5;
 			g_fKothCappedPercent[arena_index] += cap;
 		}
 		
-		g_fCappedTime[arena_index] = 0;		
+		g_fCappedTime[arena_index] = 0.0;		
 	}
 	g_fTotalTime[arena_index] = 0;
 	//If the cap is below 0 then reset it to 0
@@ -5123,7 +5213,7 @@ public EndKoth(any:arena_index, any:winner_team)
 		g_fKothCappedPercent[arena_index] = 0.0;
 		g_iCappingTeam[arena_index] = NEUTRAL;
 		g_iPointState[arena_index] = NEUTRAL;
-		g_fCappedTime[arena_index] = 0;
+		g_fCappedTime[arena_index] = 0.0;
 		g_bOvertimePlayed[arena_index][TEAM_RED] = false;
 		g_bOvertimePlayed[arena_index][TEAM_BLU] = false;
 		g_tKothTimer[arena_index] = CreateTimer(1.0,Timer_CountDownKoth,arena_index,TIMER_REPEAT);
