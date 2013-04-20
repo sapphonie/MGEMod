@@ -273,7 +273,7 @@ public OnPluginStart()
 	for(new i = 0; i < MAXARENAS+1; ++i)
 	{
 		g_bTimerRunning[i] = false;
-		g_fCappedTime[i] = 0;
+		g_fCappedTime[i] = 0.0;
 		g_fTotalTime[i] = 0;
 		for(new j = 0; j < 5; ++j)
 			g_bForceRespawn[i][j] = false;
@@ -732,7 +732,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] += float(7) / float(cap);
+							g_fCappedTime[arena_index2] += FloatDiv(7.0, float(cap));
 						}
 						g_iCappingTeam[arena_index2] = TEAM_RED;
 						continue;
@@ -783,7 +783,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] += float(7) / float(cap);
+							g_fCappedTime[arena_index2] += FloatDiv(7.0, float(cap));
 						}
 						g_iCappingTeam[arena_index2] = TEAM_BLU;
 						continue;
@@ -4430,7 +4430,7 @@ public Action:Timer_StartDuel(Handle:timer, any:arena_index)
 		g_iCappingTeam[arena_index] = NEUTRAL;
 		g_iPointState[arena_index] = NEUTRAL;
 		g_fTotalTime[arena_index] = 0;
-		g_fCappedTime[arena_index] = 0;
+		g_fCappedTime[arena_index] = 0.0;
 		g_fKothCappedPercent[arena_index] = 0.0;
 		g_bOvertimePlayed[arena_index][TEAM_RED] = false;
 		g_bOvertimePlayed[arena_index][TEAM_BLU] = false;
@@ -4616,13 +4616,13 @@ public Action:Timer_CountDownKoth(Handle:timer, any:arena_index)
 		}
 		if(g_fTotalTime[arena_index] != 0)
 		{
-			new Float: cap = FloatDiv(float(g_fCappedTime[arena_index]) * 8.4, float(g_fTotalTime[arena_index]));
+			new Float:cap = FloatDiv(g_fCappedTime[arena_index] * 8.4, float(g_fTotalTime[arena_index]));
 			if(!g_bArenaUltiduo[arena_index])
 				cap = cap * 1.5;
 			g_fKothCappedPercent[arena_index] += cap;
 		}
 		
-		g_fCappedTime[arena_index] = 0;		
+		g_fCappedTime[arena_index] = 0.0;		
 	}
 	g_fTotalTime[arena_index] = 0;
 	//If the cap is below 0 then reset it to 0
@@ -5133,7 +5133,7 @@ public EndKoth(any:arena_index, any:winner_team)
 		g_fKothCappedPercent[arena_index] = 0.0;
 		g_iCappingTeam[arena_index] = NEUTRAL;
 		g_iPointState[arena_index] = NEUTRAL;
-		g_fCappedTime[arena_index] = 0;
+		g_fCappedTime[arena_index] = 0.0;
 		g_bOvertimePlayed[arena_index][TEAM_RED] = false;
 		g_bOvertimePlayed[arena_index][TEAM_BLU] = false;
 		g_tKothTimer[arena_index] = CreateTimer(1.0,Timer_CountDownKoth,arena_index,TIMER_REPEAT);
