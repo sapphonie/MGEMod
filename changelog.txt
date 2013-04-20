@@ -1,3 +1,15 @@
+2.0.3 - April 19th, 2013
+	Bug Fixes:
+		-Medics ubercharge will now be properly reset on round end (Thanks to thesupremecommander)
+		-Fxied dark room spawn bug (again)
+		-Improved cap point functionality to better match real cap points (Thanks to thesupremecommander)
+		-Paintrain now caps at 2x speed (Thanks to thesupremecommander)
+		
+
+2.0.2 - April 17th, 2013
+	Bug fixes:
+		-Fixed spelling error in SQL code
+
 2.0.1 - April 15th, 2013
 	Bug fixes:
 		-Fixed HUD text bug for KBN hud
