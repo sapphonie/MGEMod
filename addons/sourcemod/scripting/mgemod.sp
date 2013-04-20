@@ -798,17 +798,17 @@ public OnGameFrame()
 			!(g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]))
 			{
 					new cap = 0;
-
+					
 					if(g_bPlayerTouchPoint[arena_index2][SLOT_TWO])
 					{
 						cap++;
 						//If the player is a Scout add one to the cap speed
 						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_TWO]] ==TF2_GetClass("scout"))
 							cap++;
-
+						
 						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_TWO], 2);
 						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
-
+						
 						//If the player has the Pain Train equipped add one to the cap speed
 						if(iItemDefinitionIndex == 154)
 							cap++;
@@ -819,10 +819,10 @@ public OnGameFrame()
 						//If the player is a Scout add one to the cap speed
 						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_FOUR]] ==TF2_GetClass("scout"))
 							cap++;
-
+						
 						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_FOUR], 2);
 						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
-
+						
 						//If the player has the Pain Train equipped add one to the cap speed
 						if(iItemDefinitionIndex == 154)
 							cap++;
@@ -846,17 +846,17 @@ public OnGameFrame()
 			!(g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]))
 			{
 					new cap = 0;
-
+					
 					if(g_bPlayerTouchPoint[arena_index2][SLOT_ONE])
 					{
 						cap++;
 						//If the player is a Scout add one to the cap speed
 						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_ONE]] ==TF2_GetClass("scout"))
 							cap++;
-
+						
 						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_ONE], 2);
 						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
-
+						
 						//If the player has the Pain Train equipped add one to the cap speed
 						if(iItemDefinitionIndex == 154)
 							cap++;
@@ -867,10 +867,10 @@ public OnGameFrame()
 						//If the player is a Scout add one to the cap speed
 						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_THREE]] ==TF2_GetClass("scout"))
 							cap++;
-
+						
 						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_THREE], 2);
 						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
-
+						
 						//If the player has the Pain Train equipped add one to the cap speed
 						if(iItemDefinitionIndex == 154)
 							cap++;
@@ -892,8 +892,11 @@ public OnGameFrame()
 			if((g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]) && (g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]))
 				continue;
 				
-			//else, if the point isn't being blocked then remove time capped, remove time at 1/7 the speed
-			g_fCappedTime[arena_index2]--;
+			// If in overtime, revert cap at 6x speed, if not, revert cap slowly
+			if (g_bOvertimePlayed[arena_index][TEAM_RED] || g_bOvertimePlayed[arena_index][TEAM_BLU])
+				g_fCappedTime[arena_index2] -= 6.0;
+			else
+				g_fCappedTime[arena_index2]--;
 		}
 		
 		
