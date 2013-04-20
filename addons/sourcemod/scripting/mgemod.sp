@@ -118,7 +118,7 @@ new String:g_sArenaName[MAXARENAS+1][64],
 	g_iArenaCount,
 	g_fTotalTime[MAXARENAS+1],
 	g_iCappingTeam[MAXARENAS+1],
-	g_fCappedTime[MAXARENAS+1],
+	Float:g_fCappedTime[MAXARENAS+1],
 	g_iCapturePoint[MAXARENAS+1],
 	g_iDefaultCapTime[MAXARENAS+1],
 	g_iKothTimer[MAXARENAS+1][4],		// [what arena is the cap point in][Team Red or Team Blu Time left]
