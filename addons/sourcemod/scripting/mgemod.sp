@@ -794,20 +794,98 @@ public OnGameFrame()
 			
 			//If BLU Team is blocking and RED Team isn't capping and BLU Team has the point increase the cap diminish rate
 			if((g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]) &&
-			(g_iPointState[arena_index2] == NEUTRAL ||  g_iPointState[arena_index2] == TEAM_BLU) && g_iCappingTeam[arena_index2] == TEAM_RED &&
+			(g_iPointState[arena_index2] == NEUTRAL) && g_iCappingTeam[arena_index2] == TEAM_RED &&
 			!(g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]))
 			{
-				g_fCappedTime[arena_index2] -= 7;
-				continue;
+					new cap = 0;
+
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_TWO])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_TWO]] ==TF2_GetClass("scout"))
+							cap++;
+
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_TWO], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_FOUR])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_FOUR]] ==TF2_GetClass("scout"))
+							cap++;
+
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_FOUR], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					//Add cap time if needed
+					if(cap)
+					{
+						//True harmonic cap time, yes!
+						for(; cap > 0; cap--)
+						{
+							g_fCappedTime[arena_index2] -= FloatDiv(7.0, float(cap));
+						}
+						g_iCappingTeam[arena_index2] = TEAM_BLU;
+						continue;
+					}
 			}
 			
 			//If RED Team is blocking and BLU Team isn't capping and RED Team has the point increase the cap diminish rate
 			if((g_bPlayerTouchPoint[arena_index2][SLOT_ONE] || g_bPlayerTouchPoint[arena_index2][SLOT_THREE]) && 
-			(g_iPointState[arena_index2] == NEUTRAL ||  g_iPointState[arena_index2] == TEAM_RED) && g_iCappingTeam[arena_index2] == TEAM_BLU &&
+			(g_iPointState[arena_index2] == NEUTRAL) && g_iCappingTeam[arena_index2] == TEAM_BLU &&
 			!(g_bPlayerTouchPoint[arena_index2][SLOT_TWO] || g_bPlayerTouchPoint[arena_index2][SLOT_FOUR]))
 			{
-				g_fCappedTime[arena_index2] -= 7;
-				continue;
+					new cap = 0;
+
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_ONE])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_ONE]] ==TF2_GetClass("scout"))
+							cap++;
+
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_ONE], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					if(g_bPlayerTouchPoint[arena_index2][SLOT_THREE])
+					{
+						cap++;
+						//If the player is a Scout add one to the cap speed
+						if(g_tfctPlayerClass[g_iArenaQueue[arena_index2][SLOT_THREE]] ==TF2_GetClass("scout"))
+							cap++;
+
+						new ent = GetPlayerWeaponSlot(g_iArenaQueue[arena_index2][SLOT_THREE], 2);
+						new iItemDefinitionIndex = GetEntProp(ent, Prop_Send, "m_iItemDefinitionIndex");
+
+						//If the player has the Pain Train equipped add one to the cap speed
+						if(iItemDefinitionIndex == 154)
+							cap++;
+					}
+					//Add cap time if needed
+					if(cap)
+					{
+						//True harmonic cap time, yes!
+						for(; cap > 0; cap--)
+						{
+							g_fCappedTime[arena_index2] -= FloatDiv(7.0, float(cap));
+						}
+						g_iCappingTeam[arena_index2] = TEAM_RED;
+						continue;
+					}
 			}
 			
 			//If both teams are touching the point, do nothing
