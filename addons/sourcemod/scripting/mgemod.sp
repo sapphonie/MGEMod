@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.2" 
+#define PL_VERSION "2.0.3" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -113,7 +113,6 @@ new String:g_sArenaName[MAXARENAS+1][64],
 	bool:g_bPlayerTouchPoint[MAXARENAS+1][5],
 	bool:g_bArenaTurris[MAXARENAS+1],
 	bool:g_bOvertimePlayed[MAXARENAS+1][4],
-	bool:g_bForceRespawn[MAXARENAS+1][5],
 	bool:g_bTimerRunning[MAXARENAS+1],
 	g_iArenaCount,
 	g_fTotalTime[MAXARENAS+1],
@@ -275,8 +274,6 @@ public OnPluginStart()
 		g_bTimerRunning[i] = false;
 		g_fCappedTime[i] = 0.0;
 		g_fTotalTime[i] = 0;
-		for(new j = 0; j < 5; ++j)
-			g_bForceRespawn[i][j] = false;
 	}
 	
 
@@ -3739,15 +3736,6 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	new arena_index = g_iPlayerArena[victim];
 	new victim_slot = g_iPlayerSlot[victim]; 
 	
-	//If we forced a respawn don't apply a spawn timer penalty
-	//This is a sloppy fix for random dark room respawns, and causes players to be respawned twice, which can be obnoxious/cause confusion.
-	//TODO: Fix properly
-	if(g_bForceRespawn[arena_index][victim_slot])
-	{
-		g_bForceRespawn[arena_index][victim_slot] = false;
-		CreateTimer(0.1,Timer_ResetPlayer,GetClientUserId(victim));
-		return Plugin_Handled;
-	}
 	
 	new killer_slot = (victim_slot==SLOT_ONE || victim_slot==SLOT_THREE) ? SLOT_TWO : SLOT_ONE;
 	new killer = g_iArenaQueue[arena_index][killer_slot];
@@ -5246,11 +5234,10 @@ public ResetArena(any:arena_index)
 	
 	for(new i = SLOT_ONE; i <= maxSlots; ++i)
 	{	
-		if(IsValidClient(g_iArenaQueue[arena_index][i]) && IsPlayerAlive(g_iArenaQueue[arena_index][i]))
+		if(IsValidClient(g_iArenaQueue[arena_index][i]) && IsPlayerAlive(g_iArenaQueue[arena_index][i]) && (g_tfctPlayerClass[g_iArenaQueue[arena_index][i]] == TF2_GetClass("medic")))
 		{
-			g_bForceRespawn[arena_index][i] = true;
-			ForcePlayerSuicide(g_iArenaQueue[arena_index][i]);
-			ResetPlayer(g_iArenaQueue[arena_index][i]);
+			new index = GetPlayerWeaponSlot(g_iArenaQueue[arena_index][i], 1);
+			SetEntPropFloat(index, Prop_Send, "m_flChargeLevel", 0.0);
 		}
 	}
 }
