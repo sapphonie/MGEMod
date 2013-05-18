@@ -1,3 +1,11 @@
+2.0.4 - MAy 18th, 2013
+	Bug Fixes:
+		-Fixed !top5 command
+		-Fixed incorrectly updating ELO when a player changes class and his opponet has 19 points
+	
+	Additions:
+		-Added new !add 1 blu/red command to allow player to add to a certain team.
+
 2.0.3 - April 19th, 2013
 	Bug Fixes:
 		-Medics ubercharge will now be properly reset on round end (Thanks to thesupremecommander)
@@ -27,7 +35,7 @@
 		-!swap command in ultiduo that allows you to ask your teammate to swap classes with you
 		-!top5 is now a navigable ELO ranking menu that lets you view all players in the database
 		+ mge_dueling_v1
-			- Open-source (not quite yet, .vmf to be distributed with map soon)
+			-Open-source (not quite yet, .vmf to be distributed with map soon)
 			-Ultiduo 2x
 			-Spireking 2x
 			-Turris 2x

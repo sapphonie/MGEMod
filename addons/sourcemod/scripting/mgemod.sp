@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.3" 
+#define PL_VERSION "2.0.4" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -1853,7 +1853,7 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 	}
 }
 
-AddInQueue(client,arena_index, bool:showmsg = true)
+AddInQueue(client,arena_index, bool:showmsg = true, playerPrefTeam = 0)
 {
 	if(!IsValidClient(client))
 		return;
@@ -1862,11 +1862,38 @@ AddInQueue(client,arena_index, bool:showmsg = true)
 	{
 		PrintToChatAll("client <%N> is already on arena %d",client,arena_index);
 	}
-
+	
+	//Set the player to the preffered team if there is room, otherwise just add him in wherever there is a slot
 	new player_slot = SLOT_ONE;
-
-	while (g_iArenaQueue[arena_index][player_slot])
-		player_slot++;
+	if(playerPrefTeam == TEAM_RED)
+	{
+		if(!g_iArenaQueue[arena_index][SLOT_ONE])
+			player_slot = SLOT_ONE;
+		else if(g_bFourPersonArena[arena_index] && !g_iArenaQueue[arena_index][SLOT_THREE])
+			player_slot = SLOT_THREE;
+		else
+		{
+			while (g_iArenaQueue[arena_index][player_slot])
+				player_slot++;
+		}
+	}
+	else if(playerPrefTeam == TEAM_BLU)
+	{
+		if(!g_iArenaQueue[arena_index][SLOT_TWO])
+			player_slot = SLOT_TWO;
+		else if(g_bFourPersonArena[arena_index] && !g_iArenaQueue[arena_index][SLOT_FOUR])
+			player_slot = SLOT_FOUR;
+		else
+		{
+			while (g_iArenaQueue[arena_index][player_slot])
+				player_slot++;
+		}
+	}
+	else
+	{
+		while (g_iArenaQueue[arena_index][player_slot])
+			player_slot++;
+	}
 	
 	g_iPlayerArena[client] = arena_index;
 	g_iPlayerSlot[client] = player_slot;
@@ -2663,7 +2690,6 @@ public Menu_Top5(Handle:menu, MenuAction:action, param1, param2)
 		{
 			new String:info[32];
 			GetMenuItem(menu, param2, info, sizeof(info));
-			new pos = StringToInt(info);
 			//If he selected next, query the next menu
 			if(param2 == 0)
 			{
@@ -2687,7 +2713,7 @@ public Menu_Top5(Handle:menu, MenuAction:action, param1, param2)
 				else
 				{
 					decl String:query[256];
-					Format(query, sizeof(query), "SELECT rating,name FROM mgemod_stats ORDER BY rating DESC LIMIT %i, 5", pos-5);
+					Format(query, sizeof(query), "SELECT rating,name FROM mgemod_stats ORDER BY rating DESC LIMIT %i, 5", g_iELOMenuPage[param1] * 5);
 					//new data[] = {param1, param2-5, false};
 					SQL_TQuery(db, T_SQL_Top5, query, param1);
 				}
@@ -2766,12 +2792,27 @@ public handler_ConVarChange(Handle:convar, const String:oldValue[], const String
 // ====[ COMMANDS ]====================================================
 public Action:Command_Menu(client, args)
 { //handle commands "!ammomod" "!add" and such //building queue's menu and listing arena's	
+	new playerPrefTeam = 0;
+
 	if (!IsValidClient(client))
 		return Plugin_Continue;
 
 	new String:sArg[32];
 	if(GetCmdArg(1, sArg, sizeof(sArg)) > 0)
 	{
+		//If they want to add to a color
+		new String:cArg[32];
+		if(GetCmdArg(2, cArg, sizeof(cArg)) > 0)
+		{
+			if(StrContains("blu", cArg, false) >= 0)
+			{
+				playerPrefTeam = TEAM_BLU;
+			}
+			else if(StrContains("red", cArg, false) >= 0)
+			{
+				playerPrefTeam = TEAM_RED;
+			}
+		}
 		// Was the argument an arena_index number?
 		new iArg = StringToInt(sArg);
 		if(iArg > 0 && iArg <= g_iArenaCount)
@@ -2782,7 +2823,7 @@ public Action:Command_Menu(client, args)
 			if (g_iPlayerArena[client])
 				RemoveFromQueue(client, true);
 
-			AddInQueue(client,iArg);
+			AddInQueue(client,iArg, true, playerPrefTeam);
 			return Plugin_Handled;
 		}
 
@@ -2810,9 +2851,11 @@ public Action:Command_Menu(client, args)
 			if (g_iPlayerArena[client])
 				RemoveFromQueue(client, true);
 
-			AddInQueue(client, found_arena);
+			AddInQueue(client, found_arena, true, playerPrefTeam);
 			return Plugin_Handled;
 		}
+		
+		
 	}
 
 	// Couldn't find a matching arena for the argument.
@@ -2951,7 +2994,6 @@ public Action:Command_JoinClass(client, args)
 				{
 					TF2_SetPlayerClass(client, new_class);
 					g_tfctPlayerClass[client] = new_class;
-					
 				}
 			}
 			
@@ -3038,8 +3080,10 @@ public Action:Command_JoinClass(client, args)
 
 							g_iArenaStatus[arena_index] = AS_REPORTED;
 		
-							if (!g_bNoStats /* && !g_arenaNoStats[arena_index]*/)
+							if (!g_bNoStats && g_bFourPersonArena[arena_index] /* && !g_arenaNoStats[arena_index]*/)
 								CalcELO2(killer, killer_teammate ,client, client_teammate);
+							else
+								CalcELO(killer,client);
 							if(g_bFourPersonArena[arena_index] && g_iArenaQueue[arena_index][SLOT_FOUR+1])
 							{
 								RemoveFromQueue(client,false);
