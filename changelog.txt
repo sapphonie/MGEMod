@@ -1,7 +1,7 @@
-2.0.4 - MAy 18th, 2013
+2.0.4 - May 18th, 2013
 	Bug Fixes:
 		-Fixed !top5 command
-		-Fixed incorrectly updating ELO when a player changes class and his opponet has 19 points
+		-Fixed incorrectly updating ELO when a player changes class and his opponent has 19 points
 	
 	Additions:
 		-Added new !add 1 blu/red command to allow player to add to a certain team.
