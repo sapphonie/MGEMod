@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.4" 
+#define PL_VERSION "2.0.5" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -147,6 +147,7 @@ new Handle:g_hWelcomeTimer[MAXPLAYERS+1],
 	bool:g_bShowHud[MAXPLAYERS+1] = true,
 	bool:g_iPlayerWaiting[MAXPLAYERS+1],
 	bool:g_bCanPlayerSwap[MAXPLAYERS+1],
+	bool:g_bCanPlayerGetIntel[MAXPLAYERS+1],
 	g_iPlayerArena[MAXPLAYERS+1],
 	g_iPlayerSlot[MAXPLAYERS+1],
 	g_iPlayerHP[MAXPLAYERS+1], //true HP of players
@@ -344,7 +345,10 @@ public OnPluginStart()
 				OnClientPostAdminCheck(i);
 	
 	for (new i=0;i<=MaxClients;i++)	
+	{
 		g_bCanPlayerSwap[i] = true;
+		g_bCanPlayerGetIntel[i] = true;
+	}
 				
 }
 
@@ -1116,6 +1120,9 @@ public Action:OnTouchIntel(entity, other)
 
 	if(!IsValidClient(client))
 		return;
+	
+	if(!g_bCanPlayerGetIntel[client])
+		return;
 
 	new arena_index = g_iPlayerArena[client];
 	g_bPlayerHasIntel[client] = true;
@@ -1152,7 +1159,7 @@ public Action:OnTouchIntel(entity, other)
 	}
 
 	ShowPlayerHud(client);
-	EmitSoundToClient(client, "vo/intel_teamstolen.wav", _, _, _, _, 1.0);
+	EmitSoundToClient(client, "vo/intel_teamstolen.wav");
 
 	new foe = g_iArenaQueue[g_iPlayerArena[client]][(g_iPlayerSlot[client]==SLOT_ONE || g_iPlayerSlot[client]==SLOT_THREE) ? SLOT_TWO : SLOT_ONE];
 	
@@ -2064,11 +2071,11 @@ CalcELO2(winner, winner2, loser, loser2)
 	// DB entry for this specific duel.
 	if(g_bUseSQLite)
 	{
-		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels_2v2 VALUES ('%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
+		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels_2v2 VALUES ('%s', '%s', '%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
 										g_sPlayerSteamID[winner], g_sPlayerSteamID[winner2], g_sPlayerSteamID[loser], g_sPlayerSteamID[loser2], g_iArenaScore[arena_index][winner_team_slot], g_iArenaScore[arena_index][loser_team_slot], g_iArenaFraglimit[arena_index], time, g_sMapName, g_sArenaName[arena_index]);
 		SQL_TQuery(db, SQLErrorCheckCallback, query);
 	} else {
-		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels_2v2 (winner, loser, winnerscore, loserscore, winlimit, gametime, mapname, arenaname) VALUES ('%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
+		Format(query, sizeof(query), 	"INSERT INTO mgemod_duels_2v2 (winner, winner2, loser, loser2, winnerscore, loserscore, winlimit, gametime, mapname, arenaname) VALUES ('%s', '%s', %i, %i, %i, %i, '%s', '%s')", 
 										g_sPlayerSteamID[winner], g_sPlayerSteamID[winner2], g_sPlayerSteamID[loser], g_sPlayerSteamID[loser2], g_iArenaScore[arena_index][winner_team_slot], g_iArenaScore[arena_index][loser_team_slot], g_iArenaFraglimit[arena_index], time, g_sMapName, g_sArenaName[arena_index]);
 		SQL_TQuery(db, SQLErrorCheckCallback, query);
 	}
@@ -2298,7 +2305,7 @@ ResetIntel(arena_index, any:client = -1)
 		}
 
 		if (g_iBBallIntel[arena_index] == -1)
-			g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
+			g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_medium");
 		else
 			LogError("[%s] Intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
 
@@ -3415,10 +3422,14 @@ public Action:Command_DropItem(client, const String:command[], argc)
 			g_bPlayerHasIntel[client] = false;
 			new Float:pos[3];
 			GetClientAbsOrigin(client, pos);
-			pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
+			new Float:dist = DistanceAboveGround(client);
+			if(dist > -1)
+				pos[2] = pos[2] - dist + 5;
+			else
+				pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
 
 			if (g_iBBallIntel[arena_index] == -1)
-				g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
+				g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_medium");
 			else
 				LogError("[%s] Player dropped the intel, but intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
 	
@@ -3435,6 +3446,8 @@ public Action:Command_DropItem(client, const String:command[], argc)
 			AcceptEntityInput(g_iBBallIntel[arena_index], "Enable");
 
 			EmitSoundToClient(client, "vo/intel_teamdropped.wav");
+			g_bCanPlayerGetIntel[client] = false;
+			CreateTimer(0.5, Timer_AllowPlayerCap, client);
 		}
 	}
 	
@@ -3937,10 +3950,14 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 				g_bPlayerHasIntel[victim] = false;
 				new Float:pos[3];
 				GetClientAbsOrigin(victim, pos);
-				pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
+				new Float:dist = DistanceAboveGround(victim);
+				if(dist > -1)
+					pos[2] = pos[2] - dist + 5;
+				else
+					pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
 
 				if (g_iBBallIntel[arena_index] == -1)
-					g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
+					g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_medium");
 				else
 					LogError("[%s] Player died with intel, but intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
 		
@@ -4225,6 +4242,11 @@ public Action:Timer_ResetIntel(Handle:timer, any:userid)
 	new arena_index = g_iPlayerArena[client];
 
 	ResetIntel(arena_index, client);
+}
+
+public Action:Timer_AllowPlayerCap(Handle:timer, any:userid)
+{
+	g_bCanPlayerGetIntel[userid] = true;
 }
 
 public Action:Timer_CountDown(Handle:timer, any:arena_index)
@@ -5083,7 +5105,7 @@ Float:DistanceAboveGround(victim)
 	decl Float:vEnd[3];
 	new Float:vAngles[3]={90.0,0.0,0.0};
 	GetClientAbsOrigin(victim,vStart);
-	new Handle:trace = TR_TraceRayFilterEx(vStart, vAngles, MASK_SHOT, RayType_Infinite,TraceEntityFilterPlayer);
+	new Handle:trace = TR_TraceRayFilterEx(vStart, vAngles, MASK_PLAYERSOLID, RayType_Infinite,TraceEntityFilterPlayer);
 
 	new Float:distance = -1.0;
 	if(TR_DidHit(trace))
