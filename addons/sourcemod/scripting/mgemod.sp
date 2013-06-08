@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.5" 
+#define PL_VERSION "2.0.6" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -1054,7 +1054,7 @@ public Action:OnTouchHoop(entity, other)
 				
 			if(IsValidEdict(g_iBBallIntel[arena_index]) && g_iBBallIntel[arena_index] > -1)
 			{
-				SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+				//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 				RemoveEdict(g_iBBallIntel[arena_index]);
 				g_iBBallIntel[arena_index] = -1;
 			}
@@ -1132,7 +1132,7 @@ public Action:OnTouchIntel(entity, other)
 
 	if(entity == g_iBBallIntel[arena_index] && IsValidEdict(g_iBBallIntel[arena_index]) && g_iBBallIntel[arena_index] > 0)
 	{
-		SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+		//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 		RemoveEdict(g_iBBallIntel[arena_index]);
 		g_iBBallIntel[arena_index] = -1;
 	}
@@ -1687,7 +1687,7 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 			{
 				if(IsValidEdict(g_iBBallIntel[arena_index]) && g_iBBallIntel[arena_index] > 0)
 				{
-					SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+					//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 					RemoveEdict(g_iBBallIntel[arena_index]);
 					g_iBBallIntel[arena_index] = -1;
 				}
@@ -1784,7 +1784,7 @@ RemoveFromQueue(client, bool:calcstats=false, bool:specfix=false)
 			{
 				if(IsValidEdict(g_iBBallIntel[arena_index]) && g_iBBallIntel[arena_index] > 0)
 				{
-					SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+					//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 					RemoveEdict(g_iBBallIntel[arena_index]);
 					g_iBBallIntel[arena_index] = -1;
 				}
@@ -2299,13 +2299,13 @@ ResetIntel(arena_index, any:client = -1)
 	{
 		if(IsValidEdict(g_iBBallIntel[arena_index]) && g_iBBallIntel[arena_index] > 0)
 		{
-			SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+			//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 			RemoveEdict(g_iBBallIntel[arena_index]);
 			g_iBBallIntel[arena_index] = -1;
 		}
 
 		if (g_iBBallIntel[arena_index] == -1)
-			g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_medium");
+			g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
 		else
 			LogError("[%s] Intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
 
@@ -2337,9 +2337,10 @@ ResetIntel(arena_index, any:client = -1)
 		DispatchSpawn(g_iBBallIntel[arena_index]);
 		TeleportEntity(g_iBBallIntel[arena_index], intel_loc, NULL_VECTOR, NULL_VECTOR);
 		SetEntProp(g_iBBallIntel[arena_index], Prop_Send, "m_iTeamNum", 1, 4);
+		SetEntPropFloat(g_iBBallIntel[arena_index], Prop_Send, "m_flModelScale", 1.15);
 		//Doesn't work anymore
 		//SetEntityModel(g_iBBallIntel[arena_index], MODEL_BRIEFCASE);
-		SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+		//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 		SDKHook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 		AcceptEntityInput(g_iBBallIntel[arena_index], "Enable");
 	}
@@ -3422,14 +3423,14 @@ public Action:Command_DropItem(client, const String:command[], argc)
 			g_bPlayerHasIntel[client] = false;
 			new Float:pos[3];
 			GetClientAbsOrigin(client, pos);
-			new Float:dist = DistanceAboveGround(client);
+			new Float:dist = DistanceAboveGroundAroundPlayer(client);
 			if(dist > -1)
 				pos[2] = pos[2] - dist + 5;
 			else
 				pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
 
 			if (g_iBBallIntel[arena_index] == -1)
-				g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_medium");
+				g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
 			else
 				LogError("[%s] Player dropped the intel, but intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
 	
@@ -3439,13 +3440,17 @@ public Action:Command_DropItem(client, const String:command[], argc)
 			TeleportEntity(g_iBBallIntel[arena_index], pos, NULL_VECTOR, NULL_VECTOR);
 			DispatchSpawn(g_iBBallIntel[arena_index]);
 			SetEntProp(g_iBBallIntel[arena_index], Prop_Send, "m_iTeamNum", 1, 4);
+			SetEntPropFloat(g_iBBallIntel[arena_index], Prop_Send, "m_flModelScale", 1.15);
 			//Doesn't work anymore
 			//SetEntityModel(g_iBBallIntel[arena_index], MODEL_BRIEFCASE);
-			SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+			//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 			SDKHook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 			AcceptEntityInput(g_iBBallIntel[arena_index], "Enable");
 
 			EmitSoundToClient(client, "vo/intel_teamdropped.wav");
+			
+			RemoveClientParticle(client);
+			
 			g_bCanPlayerGetIntel[client] = false;
 			CreateTimer(0.5, Timer_AllowPlayerCap, client);
 		}
@@ -3854,7 +3859,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 				CPrintToChat(victim, "%t", "HPLeft", g_iPlayerHP[attacker]);
 		}
 		//in 1v1 arenas we can assume the person who killed you is the other person in the arena
-		else if(IsPlayerAlive(killer))
+		else if(IsValidClient(killer) && IsPlayerAlive(killer))
 		{
 			if(g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index] || g_bArenaKoth[arena_index])
 				CPrintToChat(victim, "%t", "HPLeft", GetClientHealth(killer));
@@ -3957,7 +3962,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 					pos[2] = g_fArenaSpawnOrigin[arena_index][g_iArenaSpawns[arena_index]-3][2];
 
 				if (g_iBBallIntel[arena_index] == -1)
-					g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_medium");
+					g_iBBallIntel[arena_index] = CreateEntityByName("item_ammopack_small");
 				else
 					LogError("[%s] Player died with intel, but intel [%i] already exists.", g_sArenaName[arena_index], g_iBBallIntel[arena_index]);
 		
@@ -3967,9 +3972,10 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 				TeleportEntity(g_iBBallIntel[arena_index], pos, NULL_VECTOR, NULL_VECTOR);
 				DispatchSpawn(g_iBBallIntel[arena_index]);
 				SetEntProp(g_iBBallIntel[arena_index], Prop_Send, "m_iTeamNum", 1, 4);
+				SetEntPropFloat(g_iBBallIntel[arena_index], Prop_Send, "m_flModelScale", 1.15);
 				//Doesn't work anymore
 				//SetEntityModel(g_iBBallIntel[arena_index], MODEL_BRIEFCASE);
-				SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
+				//SDKUnhook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 				SDKHook(g_iBBallIntel[arena_index], SDKHook_StartTouch, OnTouchIntel);
 				AcceptEntityInput(g_iBBallIntel[arena_index], "Enable");
 
@@ -4086,6 +4092,10 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 {
 	SetConVarInt(gcvar_WfP,1);	//cancel waiting for players
 
+	//Be totally certain that the models are chached so they can be hooked
+	PrecacheModel(MODEL_BRIEFCASE, true);
+	PrecacheModel(MODEL_AMMOPACK, true);
+	
 	for (new i = 0;i<=g_iArenaCount;i++)
 	{
 		if(g_bArenaBBall[i])
@@ -4126,7 +4136,7 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 				DispatchSpawn(g_iBBallHoop[i][SLOT_ONE]);
 				SetEntProp(g_iBBallHoop[i][SLOT_ONE], Prop_Send, "m_iTeamNum", 1, 4);
 
-				SDKUnhook(g_iBBallHoop[i][SLOT_ONE], SDKHook_StartTouch, OnTouchHoop);
+				//SDKUnhook(g_iBBallHoop[i][SLOT_ONE], SDKHook_StartTouch, OnTouchHoop);
 				SDKHook(g_iBBallHoop[i][SLOT_ONE], SDKHook_StartTouch, OnTouchHoop);
 			}
 
@@ -4137,7 +4147,7 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 				DispatchSpawn(g_iBBallHoop[i][SLOT_TWO]);
 				SetEntProp(g_iBBallHoop[i][SLOT_TWO], Prop_Send, "m_iTeamNum", 1, 4);
 
-				SDKUnhook(g_iBBallHoop[i][SLOT_TWO], SDKHook_StartTouch, OnTouchHoop);
+				//SDKUnhook(g_iBBallHoop[i][SLOT_TWO], SDKHook_StartTouch, OnTouchHoop);
 				SDKHook(g_iBBallHoop[i][SLOT_TWO], SDKHook_StartTouch, OnTouchHoop);
 			}
 
@@ -4177,9 +4187,9 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 				SetEntityModel(g_iCapturePoint[i], MODEL_POINT);
 				DispatchKeyValue(g_iCapturePoint[i], "powerup_model", MODEL_BRIEFCASE);
 
-				SDKUnhook(g_iCapturePoint[i], SDKHook_StartTouch, OnTouchPoint);
+				//SDKUnhook(g_iCapturePoint[i], SDKHook_StartTouch, OnTouchPoint);
 				SDKHook(g_iCapturePoint[i], SDKHook_StartTouch, OnTouchPoint);
-				SDKUnhook(g_iCapturePoint[i], SDKHook_EndTouch, OnEndTouchPoint);
+				//SDKUnhook(g_iCapturePoint[i], SDKHook_EndTouch, OnEndTouchPoint);
 				SDKHook(g_iCapturePoint[i], SDKHook_EndTouch, OnEndTouchPoint);
 			}
 
@@ -5118,6 +5128,103 @@ Float:DistanceAboveGround(victim)
 
 	CloseHandle(trace);
 	return distance;
+}
+
+/* DistanceAboveGroundAroundUser()
+ *
+ * How high off the ground is the player?
+ *This is used for dropping
+ * -------------------------------------------------------------------------- */
+Float:DistanceAboveGroundAroundPlayer(victim)
+{
+	decl Float:vStart[3];
+	decl Float:vEnd[3];
+	new Float:vAngles[3]={90.0,0.0,0.0};
+	GetClientAbsOrigin(victim,vStart);
+	new Float:minDist;
+	
+	for(new i = 0; i < 5; ++i)
+	{
+		new Float: tvStart[3];
+		tvStart = vStart;
+		new Float:tempDist = -1.0;
+		if(i == 0)
+		{
+			new Handle:trace = TR_TraceRayFilterEx(vStart, vAngles, MASK_PLAYERSOLID, RayType_Infinite,TraceEntityFilterPlayer);
+			
+			if(TR_DidHit(trace))
+			{
+				TR_GetEndPosition(vEnd, trace);
+				minDist = GetVectorDistance(vStart, vEnd, false);
+			} else  {
+				LogError("trace error. victim %N(%d)",victim,victim);
+			}
+			CloseHandle(trace);
+		}
+		else if(i == 1)
+		{
+			tvStart[0] = tvStart[0] + 10;
+			new Handle:trace = TR_TraceRayFilterEx(tvStart, vAngles, MASK_PLAYERSOLID, RayType_Infinite,TraceEntityFilterPlayer);
+
+			if(TR_DidHit(trace))
+			{
+				TR_GetEndPosition(vEnd, trace);
+				tempDist = GetVectorDistance(tvStart, vEnd, false);
+			} else  {
+				LogError("trace error. victim %N(%d)",victim,victim);
+			}
+			CloseHandle(trace);
+		}
+		else if(i == 2)
+		{
+			tvStart[0] = tvStart[0] - 10;
+			new Handle:trace = TR_TraceRayFilterEx(tvStart, vAngles, MASK_PLAYERSOLID, RayType_Infinite,TraceEntityFilterPlayer);
+
+			if(TR_DidHit(trace))
+			{
+				TR_GetEndPosition(vEnd, trace);
+				tempDist = GetVectorDistance(tvStart, vEnd, false);
+			} else  {
+				LogError("trace error. victim %N(%d)",victim,victim);
+			}
+			CloseHandle(trace);
+		}
+		else if(i == 3)
+		{
+			tvStart[1] = vStart[1] + 10;
+			new Handle:trace = TR_TraceRayFilterEx(tvStart, vAngles, MASK_PLAYERSOLID, RayType_Infinite,TraceEntityFilterPlayer);
+
+			if(TR_DidHit(trace))
+			{
+				TR_GetEndPosition(vEnd, trace);
+				tempDist = GetVectorDistance(tvStart, vEnd, false);
+			} else  {
+				LogError("trace error. victim %N(%d)",victim,victim);
+			}
+			CloseHandle(trace);
+		}
+		else if(i == 4)
+		{
+			tvStart[1] = vStart[1] - 10;
+			new Handle:trace = TR_TraceRayFilterEx(tvStart, vAngles, MASK_PLAYERSOLID, RayType_Infinite,TraceEntityFilterPlayer);
+
+			if(TR_DidHit(trace))
+			{
+				TR_GetEndPosition(vEnd, trace);
+				tempDist = GetVectorDistance(tvStart, vEnd, false);
+			} else  {
+				LogError("trace error. victim %N(%d)",victim,victim);
+			}
+			CloseHandle(trace);
+		}
+		
+		if((tempDist > -1 && tempDist < minDist) || minDist == -1)
+		{
+				minDist = tempDist;
+		}
+	}
+	
+	return minDist;
 }
 
 /* FindEntityByClassname2()
