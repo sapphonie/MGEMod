@@ -1,3 +1,12 @@
+2.0.6 - June 7th, 2013
+	Bug Fixes:
+		-Fixed bug where particle effect wasn't being removed on dropping intel
+	
+	Tweaks:
+		-Made intel bigger
+		-Made dropping more realistic
+		-Removed porch spawn from spire on v7
+
 2.0.5 - May 29th, 2013
 	Bug Fixes:
 		-Fixed SQL insert statement bug
