@@ -2059,13 +2059,13 @@ CalcELO2(winner, winner2, loser, loser2)
 		CPrintToChat(winner, "%t","GainedPoints",winnerscore);
 		
 	if(IsValidClient(winner2) && !g_bNoDisplayRating)
-		CPrintToChat(winner, "%t","GainedPoints",winnerscore);
+		CPrintToChat(winner2, "%t","GainedPoints",winnerscore);
 
 	if(IsValidClient(loser) && !g_bNoDisplayRating)
 		CPrintToChat(loser, "%t","LostPoints",loserscore);
 		
 	if(IsValidClient(loser2) && !g_bNoDisplayRating)
-		CPrintToChat(loser, "%t","LostPoints",loserscore);
+		CPrintToChat(loser2, "%t","LostPoints",loserscore);
 
 	
 	// DB entry for this specific duel.
