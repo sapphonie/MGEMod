@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.6" 
+#define PL_VERSION "2.0.7" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -3995,7 +3995,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 			
 			
 			
-			if(g_bFourPersonArena[arena_index] && GetClientTeam(victim_teammate) == TEAM_SPEC)
+			if(g_bFourPersonArena[arena_index] && (GetClientTeam(victim_teammate) == TEAM_SPEC || !IsPlayerAlive(victim_teammate)))
 			{
 				//Reset the teams
 				ResetArena(arena_index);
@@ -4032,7 +4032,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 			//Set the player as waiting
 			g_iPlayerWaiting[victim] = true;
 			//change the player to spec to keep him from respawning 
-			ChangeClientTeam(victim, TEAM_SPEC);
+			CreateTimer(5.0, Timer_ChangePlayerSpec, victim);
 			//instead of respawning him
 			//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
 		}
@@ -4607,6 +4607,12 @@ public Action:Timer_ResetPlayer(Handle:timer, any:userid)
 
 	if (IsValidClient(client))	
 		ResetPlayer(client);
+}
+
+public Action:Timer_ChangePlayerSpec(Handle:timer, any:player)
+{
+	if (IsValidClient(player) && !IsPlayerAlive(player))	
+		ChangeClientTeam(player, TEAM_SPEC);
 }
 
 public Action:Timer_ChangeSpecTarget(Handle:timer, any:userid)
