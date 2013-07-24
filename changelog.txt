@@ -1,3 +1,7 @@
+2.0.7 - July 24th, 2013
+	Bug Fixes:
+		-Fixed a bug where rockets dissapeared after player death in 2v2 arenas.
+		
 2.0.6 - June 7th, 2013
 	Bug Fixes:
 		-Fixed bug where particle effect wasn't being removed on dropping intel
