@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.7" 
+#define PL_VERSION "2.0.8" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -1316,7 +1316,9 @@ ShowPlayerHud(client)
 {
 	if (!IsValidClient(client)) 
 		return;
-
+	
+	
+	
 	// HP
 	new arena_index = g_iPlayerArena[client];
 	new client_slot = g_iPlayerSlot[client];
@@ -1324,7 +1326,7 @@ ShowPlayerHud(client)
 	new client_foe = (g_iArenaQueue[g_iPlayerArena[client]][(g_iPlayerSlot[client]==SLOT_ONE || g_iPlayerSlot[client]==SLOT_THREE) ? SLOT_TWO : SLOT_ONE]); //test
 	new client_teammate;
 	new client_foe2;
-
+	new String:hp_report[128];
 	
 	if(g_bFourPersonArena[arena_index])
 	{
@@ -1332,6 +1334,9 @@ ShowPlayerHud(client)
 		client_foe2 = getTeammate(client_foe, client_foe_slot, arena_index);
 
 	}
+	
+	
+	
 	
 	if(g_bArenaKoth[arena_index])
 	{
@@ -1385,9 +1390,7 @@ ShowPlayerHud(client)
 		ShowSyncHudText(client, hm_HP, "", g_iPlayerHP[client]);
 	}
 
-	// We want ammomod players to be able to see what their health is, even when they have the text hud turned off. 
-	if(!g_bShowHud[client])
-		return;
+	
 
 	if(g_bArenaBBall[arena_index])
 	{
@@ -1406,7 +1409,9 @@ ShowPlayerHud(client)
 		}
 	}
 	
-	
+	// We want ammomod players to be able to see what their health is, even when they have the text hud turned off. 
+	if(!g_bShowHud[client])
+		return;
 
 	// Score
 	SetHudTextParams(0.01, 0.01, HUDFADEOUTTIME, 255,255,255,255);
@@ -1494,8 +1499,18 @@ ShowPlayerHud(client)
 				Format(report,sizeof(report),"%s\n%N (%d): %d",report,blu_f1,g_iPlayerRating[blu_f1],g_iArenaScore[arena_index][SLOT_TWO]);
 		}
 	}
-
 	ShowSyncHudText(client, hm_Score, "%s",report);
+	
+	
+	//Hp of teammate
+	if(g_bFourPersonArena[arena_index])
+	{
+		
+		if(client_teammate)
+			Format(hp_report,sizeof(hp_report),"%N : %d", client_teammate,g_iPlayerHP[client_teammate]);
+	}
+	SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255,255,255,255);
+	ShowSyncHudText(client, hm_HP, hp_report);
 }
 
 ShowSpecHudToClient(client)
@@ -1516,13 +1531,33 @@ ShowSpecHudToClient(client)
 	}
 	
 	new String:hp_report[128];
+	
+	//If its a 2v2 arena show the teamates hp's
+	if(g_bFourPersonArena[arena_index])
+	{
+		if (red_f1)
+			Format(hp_report,sizeof(hp_report),"%N : %d", red_f1,g_iPlayerHP[red_f1]);
 
-	if (red_f1)
-		Format(hp_report,sizeof(hp_report),"%N : %d", red_f1,g_iPlayerHP[red_f1]);
+		if (red_f2)
+			Format(hp_report,sizeof(hp_report),"%s\n%N : %d", hp_report, red_f2,g_iPlayerHP[red_f2]);
+		
+		if (blu_f1)
+			Format(hp_report,sizeof(hp_report),"%s\n\n%N : %d",hp_report, blu_f1, g_iPlayerHP[blu_f1]);
 
-	if (blu_f1)
-		Format(hp_report,sizeof(hp_report),"%s\n%N : %d",hp_report,blu_f1, g_iPlayerHP[blu_f1]);
+		if (blu_f2)
+			Format(hp_report,sizeof(hp_report),"%s\n%N : %d",hp_report,blu_f2, g_iPlayerHP[blu_f2]);
+	}
+	else
+	{
+		if (red_f1)
+			Format(hp_report,sizeof(hp_report),"%N : %d", red_f1,g_iPlayerHP[red_f1]);
 
+		if (blu_f1)
+			Format(hp_report,sizeof(hp_report),"%s\n%N : %d",hp_report,blu_f1, g_iPlayerHP[blu_f1]);
+	}
+	
+	
+	
 	SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255,255,255,255);
 	ShowSyncHudText(client, hm_HP, hp_report);
 
@@ -4013,9 +4048,15 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 				
 					ChangeClientTeam(killer_teammate, TEAM_BLU);
 				}
-				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
-				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim_teammate));
-				CreateTimer(0.1,Timer_NewRound,arena_index);
+				//Should there be a 3 second count down in between rounds in 2v2 or just spawn and go?
+				//Timer_NewRound would create a 3 second count down where as just reseting all the players would make it just go
+				
+				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer));
+				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer_teammate));
+				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
+				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim_teammate));
+				g_iArenaStatus[arena_index] = AS_FIGHT;
+				//CreateTimer(0.1,Timer_NewRound,arena_index);
 			}
 			
 			
