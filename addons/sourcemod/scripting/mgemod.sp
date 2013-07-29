@@ -4051,12 +4051,12 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 				//Should there be a 3 second count down in between rounds in 2v2 or just spawn and go?
 				//Timer_NewRound would create a 3 second count down where as just reseting all the players would make it just go
 				
-				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer));
-				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer_teammate));
-				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
-				CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim_teammate));
-				g_iArenaStatus[arena_index] = AS_FIGHT;
-				//CreateTimer(0.1,Timer_NewRound,arena_index);
+				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer));
+				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer_teammate));
+				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
+				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim_teammate));
+				//g_iArenaStatus[arena_index] = AS_FIGHT;
+				CreateTimer(0.1,Timer_NewRound,arena_index);
 			}
 			
 			
