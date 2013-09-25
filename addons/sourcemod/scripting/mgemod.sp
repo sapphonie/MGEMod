@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.8" 
+#define PL_VERSION "2.0.9" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -429,6 +429,11 @@ public OnMapStart()
 	for(new i = 0;i < MAXPLAYERS; i++)
 	{
 		g_iPlayerWaiting[i] = false;
+		g_bCanPlayerSwap[i] = true;
+		g_bCanPlayerGetIntel[i] = true;
+ 		g_bTimerRunning[i] = false;
+		g_fCappedTime[i] = 0.0;
+		g_fTotalTime[i] = 0;
 	}
 }
 
@@ -3046,108 +3051,113 @@ public Action:Command_JoinClass(client, args)
 				{
 					TF2_SetPlayerClass(client, new_class);
 					g_tfctPlayerClass[client] = new_class;
-					
-					if(g_iArenaStatus[arena_index] == AS_FIGHT && g_bArenaMGE[arena_index] || g_bArenaEndif[arena_index])
+					if(IsPlayerAlive(client))
 					{
-						new killer_slot = (g_iPlayerSlot[client]==SLOT_ONE || g_iPlayerSlot[client]==SLOT_THREE) ? SLOT_TWO : SLOT_ONE;
-						new fraglimit = g_iArenaFraglimit[arena_index];
-						new killer = g_iArenaQueue[arena_index][killer_slot];
-						new killer_teammate;
-						new killer_team_slot = (killer_slot > 2) ? (killer_slot - 2) : killer_slot;
-						new client_team_slot = (g_iPlayerSlot[client] > 2) ? (g_iPlayerSlot[client] - 2) : g_iPlayerSlot[client];
-						
-						if(g_bFourPersonArena[arena_index])
+						if((g_iArenaStatus[arena_index] == AS_FIGHT && g_bArenaMGE[arena_index] || g_bArenaEndif[arena_index]))
 						{
-							killer_teammate = getTeammate(killer, killer_slot, arena_index);
-						}
-						if(g_iArenaStatus[arena_index] == AS_FIGHT && killer)
-						{
+							new killer_slot = (g_iPlayerSlot[client]==SLOT_ONE || g_iPlayerSlot[client]==SLOT_THREE) ? SLOT_TWO : SLOT_ONE;
+							new fraglimit = g_iArenaFraglimit[arena_index];
+							new killer = g_iArenaQueue[arena_index][killer_slot];
+							new killer_teammate;
+							new killer_team_slot = (killer_slot > 2) ? (killer_slot - 2) : killer_slot;
+							new client_team_slot = (g_iPlayerSlot[client] > 2) ? (g_iPlayerSlot[client] - 2) : g_iPlayerSlot[client];
 							
-							g_iArenaScore[arena_index][killer_team_slot] += 1;
-							CPrintToChat(killer,"%t","ClassChangePointOpponent");	
-							CPrintToChat(client,"%t","ClassChangePoint");
-							
-							if(g_bFourPersonArena[arena_index] && killer_teammate)
-								CreateTimer(3.0,Timer_NewRound,arena_index);
-						}
-
-						ShowPlayerHud(client);
-
-						if(IsValidClient(killer))
-						{
-							TF2_RegeneratePlayer(killer);
-							new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer])*g_fArenaHPRatio[arena_index]);
-							g_iPlayerHP[killer] = raised_hp;
-							SetEntProp(killer, Prop_Data, "m_iHealth", raised_hp);
-							ShowPlayerHud(killer);
-						}
-
-						if(g_bFourPersonArena[arena_index])
-						{
-							if(IsValidClient(killer_teammate))
-							{
-								TF2_RegeneratePlayer(killer_teammate);
-								new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer_teammate])*g_fArenaHPRatio[arena_index]);
-								g_iPlayerHP[killer_teammate] = raised_hp;
-								SetEntProp(killer_teammate, Prop_Data, "m_iHealth", raised_hp);
-								ShowPlayerHud(killer_teammate);
-							}
-							if(IsValidClient(client_teammate))
-							{
-								TF2_RegeneratePlayer(client_teammate);
-								new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[client_teammate])*g_fArenaHPRatio[arena_index]);
-								g_iPlayerHP[client_teammate] = raised_hp;
-								SetEntProp(client_teammate, Prop_Data, "m_iHealth", raised_hp);
-								ShowPlayerHud(client_teammate);
-							}
-						}
-
-						if (g_iArenaStatus[arena_index] == AS_FIGHT && fraglimit>0 && g_iArenaScore[arena_index][killer_team_slot] >= fraglimit)
-						{
-							new String:killer_name[(MAX_NAME_LENGTH * 2) + 5];
-							new String:victim_name[(MAX_NAME_LENGTH * 2) + 5];
-							GetClientName(killer,killer_name, sizeof(killer_name));
-							GetClientName(client,victim_name, sizeof(victim_name));
 							if(g_bFourPersonArena[arena_index])
 							{
-								new String:killer_teammate_name[MAX_NAME_LENGTH];
-								new String:victim_teammate_name[MAX_NAME_LENGTH];
-								
-								GetClientName(killer_teammate,killer_teammate_name, sizeof(killer_teammate_name));
-								GetClientName(client_teammate,victim_teammate_name, sizeof(victim_teammate_name));
-						
-								Format(killer_name, sizeof(killer_name), "%s and %s", killer_name, killer_teammate_name); 
-								Format(victim_name, sizeof(victim_name), "%s and %s", victim_name, victim_teammate_name); 
+								killer_teammate = getTeammate(killer, killer_slot, arena_index);
 							}
-							CPrintToChatAll("%t","XdefeatsY", killer_name, g_iArenaScore[arena_index][killer_team_slot], victim_name, g_iArenaScore[arena_index][client_team_slot], fraglimit, g_sArenaName[arena_index]);
+							if(g_iArenaStatus[arena_index] == AS_FIGHT && killer)
+							{
+								
+								g_iArenaScore[arena_index][killer_team_slot] += 1;
+								CPrintToChat(killer,"%t","ClassChangePointOpponent");	
+								CPrintToChat(client,"%t","ClassChangePoint");
+								
+								if(g_bFourPersonArena[arena_index] && killer_teammate)
+									CreateTimer(3.0,Timer_NewRound,arena_index);
+							}
 
-							g_iArenaStatus[arena_index] = AS_REPORTED;
-		
-							if (!g_bNoStats && g_bFourPersonArena[arena_index] /* && !g_arenaNoStats[arena_index]*/)
-								CalcELO2(killer, killer_teammate ,client, client_teammate);
-							else
-								CalcELO(killer,client);
-							if(g_bFourPersonArena[arena_index] && g_iArenaQueue[arena_index][SLOT_FOUR+1])
+							ShowPlayerHud(client);
+
+							if(IsValidClient(killer))
 							{
-								RemoveFromQueue(client,false);
-								AddInQueue(client,arena_index,false);
-								
-								RemoveFromQueue(client_teammate,false);
-								AddInQueue(client_teammate,arena_index,false);
+								TF2_RegeneratePlayer(killer);
+								new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer])*g_fArenaHPRatio[arena_index]);
+								g_iPlayerHP[killer] = raised_hp;
+								SetEntProp(killer, Prop_Data, "m_iHealth", raised_hp);
+								ShowPlayerHud(killer);
 							}
-							else if (g_iArenaQueue[arena_index][SLOT_TWO+1])
+
+							if(g_bFourPersonArena[arena_index])
 							{
-								RemoveFromQueue(client,false);
-								AddInQueue(client,arena_index,false);
-							} 
-							else 
-							{
-								CreateTimer(3.0,Timer_StartDuel,arena_index);
+								if(IsValidClient(killer_teammate))
+								{
+									TF2_RegeneratePlayer(killer_teammate);
+									new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer_teammate])*g_fArenaHPRatio[arena_index]);
+									g_iPlayerHP[killer_teammate] = raised_hp;
+									SetEntProp(killer_teammate, Prop_Data, "m_iHealth", raised_hp);
+									ShowPlayerHud(killer_teammate);
+								}
+								if(IsValidClient(client_teammate))
+								{
+									TF2_RegeneratePlayer(client_teammate);
+									new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[client_teammate])*g_fArenaHPRatio[arena_index]);
+									g_iPlayerHP[client_teammate] = raised_hp;
+									SetEntProp(client_teammate, Prop_Data, "m_iHealth", raised_hp);
+									ShowPlayerHud(client_teammate);
+								}
 							}
+
+							if (g_iArenaStatus[arena_index] == AS_FIGHT && fraglimit>0 && g_iArenaScore[arena_index][killer_team_slot] >= fraglimit)
+							{
+								new String:killer_name[(MAX_NAME_LENGTH * 2) + 5];
+								new String:victim_name[(MAX_NAME_LENGTH * 2) + 5];
+								GetClientName(killer,killer_name, sizeof(killer_name));
+								GetClientName(client,victim_name, sizeof(victim_name));
+								if(g_bFourPersonArena[arena_index])
+								{
+									new String:killer_teammate_name[MAX_NAME_LENGTH];
+									new String:victim_teammate_name[MAX_NAME_LENGTH];
+									
+									GetClientName(killer_teammate,killer_teammate_name, sizeof(killer_teammate_name));
+									GetClientName(client_teammate,victim_teammate_name, sizeof(victim_teammate_name));
+							
+									Format(killer_name, sizeof(killer_name), "%s and %s", killer_name, killer_teammate_name); 
+									Format(victim_name, sizeof(victim_name), "%s and %s", victim_name, victim_teammate_name); 
+								}
+								CPrintToChatAll("%t","XdefeatsY", killer_name, g_iArenaScore[arena_index][killer_team_slot], victim_name, g_iArenaScore[arena_index][client_team_slot], fraglimit, g_sArenaName[arena_index]);
+
+								g_iArenaStatus[arena_index] = AS_REPORTED;
+			
+								if (!g_bNoStats && g_bFourPersonArena[arena_index] /* && !g_arenaNoStats[arena_index]*/)
+									CalcELO2(killer, killer_teammate ,client, client_teammate);
+								else
+									CalcELO(killer,client);
+								if(g_bFourPersonArena[arena_index] && g_iArenaQueue[arena_index][SLOT_FOUR+1])
+								{
+									RemoveFromQueue(client,false);
+									AddInQueue(client,arena_index,false);
+									
+									RemoveFromQueue(client_teammate,false);
+									AddInQueue(client_teammate,arena_index,false);
+								}
+								else if (g_iArenaQueue[arena_index][SLOT_TWO+1])
+								{
+									RemoveFromQueue(client,false);
+									AddInQueue(client,arena_index,false);
+								} 
+								else 
+								{
+									CreateTimer(3.0,Timer_StartDuel,arena_index);
+								}
+							}
+							
+							
 						}
+					
+						CreateTimer(0.1,Timer_ResetPlayer,GetClientUserId(client));
 					}
-					CreateTimer(0.1,Timer_ResetPlayer,GetClientUserId(client));
-					//Reset Hadnicap on class change to prevent an exploit where players could set their handicap to 299 as soldier
+					//Reset Handicap on class change to prevent an exploit where players could set their handicap to 299 as soldier
 					//And then play scout as 299
 					g_iPlayerHandicap[client] = 0;
 					ShowSpecHudToArena(g_iPlayerArena[client]);
@@ -3537,13 +3547,14 @@ PrepareSQL() // Opens the connection to the database, and creates the tables if 
 	if(g_bUseSQLite)
 	{
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_stats (rating INTEGER, steamid TEXT, name TEXT, wins INTEGER, losses INTEGER, lastplayed INTEGER, hitblip INTEGER)");
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner TEXT, loser TEXT, winnerscore INTEGER, loserscore INTEGER, winlimit INTEGER, gametime INTEGER, mapname TEXT, arenaname TEXT)");
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner TEXT, winner2 TEXT, loser TEXT, loser2 TEXT, winnerscore INTEGER, loserscore INTEGER, winlimit INTEGER, gametime INTEGER, mapname TEXT, arenaname TEXT)");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner TEXT, loser TEXT, winnerscore INTEGER, loserscore INTEGER, winlimit INTEGER, gametime INTEGER, mapname TEXT, arenaname TEXT) ");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner TEXT, winner2 TEXT, loser TEXT, loser2 TEXT, winnerscore INTEGER, loserscore INTEGER, winlimit INTEGER, gametime INTEGER, mapname TEXT, arenaname TEXT) ");
 	} else {
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_stats (rating INT(4) NOT NULL, steamid VARCHAR(32) NOT NULL, name VARCHAR(64) NOT NULL, wins INT(4) NOT NULL, losses INT(4) NOT NULL, lastplayed INT(11) NOT NULL, hitblip INT(2) NOT NULL) ENGINE = InnoDB");
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) ENGINE = InnoDB");
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner VARCHAR(32) NOT NULL, winner2 VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, loser2 VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) ENGINE = InnoDB");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_stats (rating INT(4) NOT NULL, steamid VARCHAR(32) NOT NULL, name VARCHAR(64) NOT NULL, wins INT(4) NOT NULL, losses INT(4) NOT NULL, lastplayed INT(11) NOT NULL, hitblip INT(2) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner VARCHAR(32) NOT NULL, winner2 VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, loser2 VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
 	}
+	
 }
 
 public T_SQLQueryOnConnect(Handle:owner, Handle:hndl, const String:error[], any:data)
@@ -4048,14 +4059,21 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 				
 					ChangeClientTeam(killer_teammate, TEAM_BLU);
 				}
+				
 				//Should there be a 3 second count down in between rounds in 2v2 or just spawn and go?
 				//Timer_NewRound would create a 3 second count down where as just reseting all the players would make it just go
-				
-				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer));
-				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(killer_teammate));
-				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim));
-				//CreateTimer(g_fArenaRespawnTime[arena_index],Timer_ResetPlayer,GetClientUserId(victim_teammate));
-				//g_iArenaStatus[arena_index] = AS_FIGHT;
+				/*
+				if(killer)
+					ResetPlayer(killer);
+				if(victim_teammate)
+					ResetPlayer(victim_teammate);	
+				if(victim)
+					ResetPlayer(victim);
+				if(killer_teammate)
+					ResetPlayer(killer_teammate);
+					
+				g_iArenaStatus[arena_index] = AS_FIGHT;
+				*/
 				CreateTimer(0.1,Timer_NewRound,arena_index);
 			}
 			
