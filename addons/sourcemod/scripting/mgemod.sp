@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.9" 
+#define PL_VERSION "2.0.9.1" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -51,6 +51,7 @@ new bool:g_bNoDisplayRating;
 // HUD Handles
 new Handle:hm_HP = INVALID_HANDLE,
 	Handle:hm_Score = INVALID_HANDLE,
+	Handle:hm_TeammateHP = INVALID_HANDLE,
 	Handle:hm_KothTimerBLU = INVALID_HANDLE,
 	Handle:hm_KothTimerRED = INVALID_HANDLE,
 	Handle:hm_KothCap = INVALID_HANDLE;
@@ -333,6 +334,7 @@ public OnPluginStart()
 	hm_KothTimerBLU = CreateHudSynchronizer();
 	hm_KothTimerRED = CreateHudSynchronizer();
 	hm_KothCap = CreateHudSynchronizer();
+	hm_TeammateHP = CreateHudSynchronizer();
 
 	// Set up the log file for debug logging.
 	BuildPath(Path_SM, g_sLogFile, sizeof(g_sLogFile), "logs/mgemod.log");
@@ -1414,7 +1416,8 @@ ShowPlayerHud(client)
 		}
 	}
 	
-	// We want ammomod players to be able to see what their health is, even when they have the text hud turned off. 
+	// We want ammomod players to be able to see what their health is, even when they have the text hud turned off.
+	// We also want to show them BBALL notifications	
 	if(!g_bShowHud[client])
 		return;
 
@@ -1515,7 +1518,7 @@ ShowPlayerHud(client)
 			Format(hp_report,sizeof(hp_report),"%N : %d", client_teammate,g_iPlayerHP[client_teammate]);
 	}
 	SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255,255,255,255);
-	ShowSyncHudText(client, hm_HP, hp_report);
+	ShowSyncHudText(client, hm_TeammateHP, hp_report);
 }
 
 ShowSpecHudToClient(client)
