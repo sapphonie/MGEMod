@@ -1,3 +1,9 @@
+2.0.9.2 - May 8th, 2014
+	-Fixed Array out of bounds exception
+	
+2.0.9.1 - Feb 16th, 2014
+	-Fixed HP not showing in ammomod
+
 2.0.8 - July 28th, 2013
 	Additions:
 		-Added teammates hp in 2v2 player hud

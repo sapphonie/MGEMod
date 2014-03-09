@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.9.1" 
+#define PL_VERSION "2.0.9.2" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -433,7 +433,12 @@ public OnMapStart()
 		g_iPlayerWaiting[i] = false;
 		g_bCanPlayerSwap[i] = true;
 		g_bCanPlayerGetIntel[i] = true;
- 		g_bTimerRunning[i] = false;
+ 		
+	}
+	
+	for(new i = 0; i < MAXARENAS; i++)
+	{
+		g_bTimerRunning[i] = false;
 		g_fCappedTime[i] = 0.0;
 		g_fTotalTime[i] = 0;
 	}
