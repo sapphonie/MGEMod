@@ -13,7 +13,7 @@
 #define MAXARENAS 31
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
-#define MAPCONFIGFILE "configs/mgemod_spawns.cfg"
+//#define MAPCONFIGFILE "configs/mgemod_spawns.cfg"
 #define STATSCONFIGFILE "configs/mgemod_stats.cfg"
 #define SLOT_ONE 1 //arena slot 1
 #define SLOT_TWO 2 //arena slot 2
@@ -62,7 +62,8 @@ new String:g_sMapName[64],
 	bool:g_bUseSQLite,
 	bool:g_bAutoCvar,
 	g_iDefaultFragLimit,
-	g_iAirshotHeight = 80;
+	g_iAirshotHeight = 80,
+	String:g_spawnFile[128];
 
 // Database
 new Handle:db = INVALID_HANDLE, // Connection to SQL database.
@@ -86,7 +87,8 @@ new Handle:gcvar_WfP = INVALID_HANDLE,
 	Handle:gcvar_bballParticle_blue = INVALID_HANDLE,
 	Handle:gcvar_noDisplayRating = INVALID_HANDLE,
 	Handle:gcvar_stats = INVALID_HANDLE,
-	Handle:gcvar_reconnectInterval = INVALID_HANDLE;
+	Handle:gcvar_reconnectInterval = INVALID_HANDLE,
+	Handle:gcvar_spawnFile = INVALID_HANDLE;
 
 // Classes
 new g_tfctClassAllowed[TFClassType]; // Special "TFClass_Type" data type.
@@ -255,6 +257,7 @@ public OnPluginStart()
 	gcvar_midairHP = CreateConVar("mgemod_midair_hp", "5", "", FCVAR_PLUGIN, true, 1.0);
 	gcvar_noDisplayRating = CreateConVar("mgemod_hide_rating", "0", "Hide the in-game display of rating points. They will still be tracked in the database.", FCVAR_PLUGIN);
 	gcvar_reconnectInterval = CreateConVar("mgemod_reconnect_interval", "5", "How long (in minutes) to wait between database reconnection attempts.", FCVAR_PLUGIN);
+	gcvar_spawnFile = CreateConVar("mgemod_spawnfile", "configs/mgemod_spawns.cfg", "Spawn file", FCVAR_PLUGIN);
 
 	// Populate global variables with their corresponding convar values.
 	g_iDefaultFragLimit = GetConVarInt(gcvar_fragLimit);
@@ -271,6 +274,7 @@ public OnPluginStart()
 	GetConVarString(gcvar_bballParticle_blue, g_sBBallParticleBlue, sizeof(g_sBBallParticleBlue));
 	g_bNoDisplayRating = GetConVarInt(gcvar_noDisplayRating) ? true : false;
 	g_iReconnectInterval = GetConVarInt(gcvar_reconnectInterval);
+	GetConVarString(gcvar_spawnFile, g_spawnFile, sizeof(g_spawnFile));
 	for(new i = 0; i < MAXARENAS+1; ++i)
 	{
 		g_bTimerRunning[i] = false;
@@ -289,6 +293,7 @@ public OnPluginStart()
 	}
 
 	// Hook convar changes.
+	HookConVarChange(gcvar_spawnFile, handler_ConVarChange);
 	HookConVarChange(gcvar_fragLimit, handler_ConVarChange);
 	HookConVarChange(gcvar_allowedClasses, handler_ConVarChange);
 	HookConVarChange(gcvar_blockFallDamage, handler_ConVarChange);
@@ -2152,7 +2157,7 @@ CalcELO2(winner, winner2, loser, loser2)
 LoadSpawnPoints()
 {
 	new String:txtfile[256];
-	BuildPath(Path_SM, txtfile, sizeof(txtfile), MAPCONFIGFILE);
+	BuildPath(Path_SM, txtfile, sizeof(txtfile), g_spawnFile);
 
 	new String:spawn[64];
 	GetCurrentMap(g_sMapName,sizeof(g_sMapName));
@@ -2843,6 +2848,11 @@ public handler_ConVarChange(Handle:convar, const String:oldValue[], const String
 		g_iReconnectInterval = StringToInt(newValue);
 	else if (convar == gcvar_dbConfig)
 		strcopy(g_sDBConfig, sizeof(g_sDBConfig), newValue);
+	else if (convar == gcvar_spawnFile)
+		{
+		strcopy(g_spawnFile, sizeof(g_spawnFile), newValue);
+		LoadSpawnPoints();
+		}
 }
 
 // ====[ COMMANDS ]====================================================
