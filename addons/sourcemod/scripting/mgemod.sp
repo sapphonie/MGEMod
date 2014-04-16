@@ -5174,6 +5174,8 @@ bool:IsValidClient(iClient)
 		return false;
 	if(IsClientInKickQueue(iClient))
 		return false;
+  if(IsClientSourceTV(iClient))
+    return false;
 	return IsClientInGame(iClient);
 }
 
