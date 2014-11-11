@@ -1,4 +1,4 @@
-For more info on MGEMod, see it's AlliedMods thread and it's TF2Wiki page.
+For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
 
 - [AlliedMods](https://forums.alliedmods.net/showthread.php?t=154755)
 - [TF2Wiki](http://wiki.teamfortress.com/wiki/MGE_Mod)
