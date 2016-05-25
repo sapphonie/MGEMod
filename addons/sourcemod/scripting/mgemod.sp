@@ -44,7 +44,7 @@
 //#define DEBUG_LOG
 
 // ====[ VARIABLES ]===================================================
-// Handle, String, Float, Bool, Int, TFCT
+// Handle, String, Float, Bool, NUM, TFCT
 new bool:g_bNoStats;
 new bool:g_bNoDisplayRating;
 
@@ -2533,9 +2533,9 @@ ShowMainMenu(client,bool:listplayers=true)
 	for (new i=1;i<=g_iArenaCount;i++)
 	{
 		new numslots = 0;
-		for(new int = 1; int <= MAXPLAYERS+1; int++)
+		for(new NUM = 1; NUM <= MAXPLAYERS+1; NUM++)
 		{
-			if(g_iArenaQueue[i][int])
+			if(g_iArenaQueue[i][NUM])
 				numslots++;
 			else
 				break;
@@ -3568,9 +3568,9 @@ PrepareSQL() // Opens the connection to the database, and creates the tables if 
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner TEXT, loser TEXT, winnerscore INTEGER, loserscore INTEGER, winlimit INTEGER, gametime INTEGER, mapname TEXT, arenaname TEXT) ");
 		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner TEXT, winner2 TEXT, loser TEXT, loser2 TEXT, winnerscore INTEGER, loserscore INTEGER, winlimit INTEGER, gametime INTEGER, mapname TEXT, arenaname TEXT) ");
 	} else {
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_stats (rating INT(4) NOT NULL, steamid VARCHAR(32) NOT NULL, name VARCHAR(64) NOT NULL, wins INT(4) NOT NULL, losses INT(4) NOT NULL, lastplayed INT(11) NOT NULL, hitblip INT(2) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
-		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner VARCHAR(32) NOT NULL, winner2 VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, loser2 VARCHAR(32) NOT NULL, winnerscore INT(4) NOT NULL, loserscore INT(4) NOT NULL, winlimit INT(4) NOT NULL, gametime INT(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_stats (rating NUM(4) NOT NULL, steamid VARCHAR(32) NOT NULL, name VARCHAR(64) NOT NULL, wins NUM(4) NOT NULL, losses NUM(4) NOT NULL, lastplayed NUM(11) NOT NULL, hitblip NUM(2) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels (winner VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, winnerscore NUM(4) NOT NULL, loserscore NUM(4) NOT NULL, winlimit NUM(4) NOT NULL, gametime NUM(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
+		SQL_TQuery(db, SQLErrorCheckCallback, "CREATE TABLE IF NOT EXISTS mgemod_duels_2v2 (winner VARCHAR(32) NOT NULL, winner2 VARCHAR(32) NOT NULL, loser VARCHAR(32) NOT NULL, loser2 VARCHAR(32) NOT NULL, winnerscore NUM(4) NOT NULL, loserscore NUM(4) NOT NULL, winlimit NUM(4) NOT NULL, gametime NUM(11) NOT NULL, mapname VARCHAR(64) NOT NULL, arenaname VARCHAR(32) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB ");
 	}
 	
 }
@@ -5174,8 +5174,8 @@ bool:IsValidClient(iClient)
 		return false;
 	if(IsClientInKickQueue(iClient))
 		return false;
-  if(IsClientSourceTV(iClient))
-    return false;
+	if(IsClientSourceTV(iClient))
+		return false;
 	return IsClientInGame(iClient);
 }
 
