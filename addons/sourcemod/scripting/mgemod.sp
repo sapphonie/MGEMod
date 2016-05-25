@@ -44,7 +44,7 @@
 //#define DEBUG_LOG
 
 // ====[ VARIABLES ]===================================================
-// Handle, String, Float, Bool, Int, TFCT
+// Handle, String, Float, Bool, NUM, TFCT
 new bool:g_bNoStats;
 new bool:g_bNoDisplayRating;
 
@@ -2533,9 +2533,9 @@ ShowMainMenu(client,bool:listplayers=true)
 	for (new i=1;i<=g_iArenaCount;i++)
 	{
 		new numslots = 0;
-		for(new int = 1; int <= MAXPLAYERS+1; int++)
+		for(new NUM = 1; NUM <= MAXPLAYERS+1; NUM++)
 		{
-			if(g_iArenaQueue[i][int])
+			if(g_iArenaQueue[i][NUM])
 				numslots++;
 			else
 				break;
@@ -5174,8 +5174,8 @@ bool:IsValidClient(iClient)
 		return false;
 	if(IsClientInKickQueue(iClient))
 		return false;
-  if(IsClientSourceTV(iClient))
-    return false;
+	if(IsClientSourceTV(iClient))
+		return false;
 	return IsClientInGame(iClient);
 }
 
