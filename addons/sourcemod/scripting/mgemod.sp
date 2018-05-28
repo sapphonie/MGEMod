@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.9.4" 
+#define PL_VERSION "2.0.9.5" 
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -4151,7 +4151,7 @@ public Action:Event_PlayerTeam(Handle:event, const String:name[], bool:dontBroad
 		if (arena_index && ((!g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] <= SLOT_TWO) || (g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] <= SLOT_FOUR && !isPlayerWaiting(client))))
 		{
 			CPrintToChat(client,"%t","SpecRemove");
-			RemoveFromQueue(client);
+			RemoveFromQueue(client,true);
 		}
 	} else if (IsValidClient(client)) { // this code fixing spawn exploit
 		new arena_index = g_iPlayerArena[client];
