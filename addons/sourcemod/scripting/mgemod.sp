@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.0.9.5" 
+#define PL_VERSION "2.0.9.6"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -3876,7 +3876,7 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	if(g_bFourPersonArena[arena_index])
 	{
 		victim_teammate = getTeammate(victim, victim_slot, arena_index);
-		killer_teammate = getTeammate(killer, killer_teammate, arena_index);
+		killer_teammate = getTeammate(killer, killer_slot, arena_index);
 	}
 	
 	RemoveClientParticle(victim);
