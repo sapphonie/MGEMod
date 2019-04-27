@@ -1,0 +1,32 @@
+variables:
+  - group: Publishing Secrets
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+steps:
+- script: |
+    wget --content-disposition --output-document "sourcemod.tar.gz" -E -c "http://sourcemod.net/latest.php?os=linux&version=1.9"
+    tar -xzf sourcemod.tar.gz
+  displayName: 'Get the SourceMod compiler and includes'
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+  
+- script: |
+    npm i -g semantic-release @semantic-release/exec
+    semantic-release
+  displayName: 'Release'
+  env:
+    GH_TOKEN: $(GH_TOKEN)
+    
+- script: ./build.sh
+  displayName: 'Manual build'
+    
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'plugins'
+    targetPath: 'addons/sourcemod/scripting/mgemod.smx'
+
