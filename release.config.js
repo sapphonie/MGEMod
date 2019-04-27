@@ -11,8 +11,7 @@ module.exports = {
 		["@semantic-release/github", {
 			"assets": [
 				{"path": "addons/sourcemod/scripting/mgemod.smx", "label": "Compiled plugin"}
-			],
-			"successComment": false
+			]
 		}]
 	]
 };
