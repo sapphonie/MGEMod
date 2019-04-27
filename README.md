@@ -1,4 +1,4 @@
-# MGEMod
+# MGEMod [![Build Status](https://dev.azure.com/vancampalex/mgemod/_apis/build/status/Lange.MGEMod?branchName=master)](https://dev.azure.com/vancampalex/mgemod/_build/latest?definitionId=3&branchName=master)
 
 > A 1v1 and 2v2 training mod for Team Fortress 2
 
