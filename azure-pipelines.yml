@@ -6,6 +6,10 @@ pool:
 
 steps:
 - script: |
+    cp -r addons maps $BUILD_ARTIFACTSTAGINGDIRECTORY/
+  displayName: 'Copy source files to artifact staging directory'
+
+- script: |
     wget --content-disposition --output-document "sourcemod.tar.gz" -E -c "http://sourcemod.net/latest.php?os=linux&version=1.9"
     tar -xzf sourcemod.tar.gz
   displayName: 'Get the SourceMod compiler and includes'
@@ -27,6 +31,4 @@ steps:
     
 - task: PublishPipelineArtifact@0
   inputs:
-    artifactName: 'plugins'
-    targetPath: 'addons/sourcemod/scripting/mgemod.smx'
-
+    targetPath: 'mgemod.zip'

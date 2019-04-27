@@ -8,6 +8,4 @@ For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
 - [TF2Wiki](http://wiki.teamfortress.com/wiki/MGE_Mod)
 
 ## Downloading
-- The compiled plugin can be downloaded from the [Releases](https://github.com/Lange/MGEMod/releases) page.
-  - Click the "Compiled plugin" link under the "Assets" heading of the release you'd like to download.
-- The maps can be downloaded by [viewing them in the `maps` folder](https://github.com/Lange/MGEMod/tree/master/maps), then clicking the "Download" button in the top right.
+- Navigate to the releases [Releases](https://github.com/Lange/MGEMod/releases) page, and download `mgemod.zip` for the specific release you'd like.
