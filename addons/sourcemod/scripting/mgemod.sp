@@ -2651,7 +2651,7 @@ public Menu_Main(Handle:menu, MenuAction:action, param1, param2)
 				AddInQueue(client,arena_index);
 
 			} else {
-				RemoveFromQueue(client);
+				RemoveFromQueue(client, true);
 			}
 		}
 		case MenuAction_Cancel:
