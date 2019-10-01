@@ -2334,6 +2334,15 @@ ResetPlayer(client)
 	return 1;
 }
 
+ResetKiller(killer,arena_index)
+{
+	TF2_RegeneratePlayer(killer);
+	new reset_hp = g_iPlayerHandicap[killer] ? g_iPlayerHandicap[killer] : RoundToNearest(float(g_iPlayerMaxHP[killer])*g_fArenaHPRatio[arena_index]);
+	g_iPlayerHP[killer] = reset_hp;
+	SetEntProp(killer, Prop_Data, "m_iHealth", reset_hp);
+}
+
+
 ResetClientAmmoCounts(client)
 {
 	// Crutch.
@@ -3100,10 +3109,7 @@ public Action:Command_JoinClass(client, args)
 
 							if(IsValidClient(killer))
 							{
-								TF2_RegeneratePlayer(killer);
-								new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer])*g_fArenaHPRatio[arena_index]);
-								g_iPlayerHP[killer] = raised_hp;
-								SetEntProp(killer, Prop_Data, "m_iHealth", raised_hp);
+								ResetKiller(killer,arena_index);
 								ShowPlayerHud(killer);
 							}
 
@@ -3111,18 +3117,12 @@ public Action:Command_JoinClass(client, args)
 							{
 								if(IsValidClient(killer_teammate))
 								{
-									TF2_RegeneratePlayer(killer_teammate);
-									new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer_teammate])*g_fArenaHPRatio[arena_index]);
-									g_iPlayerHP[killer_teammate] = raised_hp;
-									SetEntProp(killer_teammate, Prop_Data, "m_iHealth", raised_hp);
+									ResetKiller(killer_teammate,arena_index);
 									ShowPlayerHud(killer_teammate);
 								}
 								if(IsValidClient(client_teammate))
 								{
-									TF2_RegeneratePlayer(client_teammate);
-									new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[client_teammate])*g_fArenaHPRatio[arena_index]);
-									g_iPlayerHP[client_teammate] = raised_hp;
-									SetEntProp(client_teammate, Prop_Data, "m_iHealth", raised_hp);
+									ResetKiller(client_teammate,arena_index);
 									ShowPlayerHud(client_teammate);
 								}
 							}
@@ -4052,14 +4052,8 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 		} else {
 			if(!g_bFourPersonArena[arena_index] && !g_bArenaKoth[arena_index])
 			{
-				TF2_RegeneratePlayer(killer);
-				new raised_hp = RoundToNearest(float(g_iPlayerMaxHP[killer])*g_fArenaHPRatio[arena_index]);
-				g_iPlayerHP[killer] = raised_hp;
-				SetEntProp(killer, Prop_Data, "m_iHealth", raised_hp);
+				ResetKiller(killer,arena_index);
 			}
-			
-			
-			
 			if(g_bFourPersonArena[arena_index] && (GetClientTeam(victim_teammate) == TEAM_SPEC || !IsPlayerAlive(victim_teammate)))
 			{
 				//Reset the teams
