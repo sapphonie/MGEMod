@@ -9,3 +9,6 @@ For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
 
 ## Downloading
 - Navigate to the releases [Releases](https://github.com/Lange/MGEMod/releases) page, and download `mgemod.zip` for the specific release you'd like.
+
+## Known issues
+- A server segfault can be caused by [certain interactions between Sniper, Heavy, and Pyro](https://forums.alliedmods.net/showthread.php?t=302264), if they are enabled. This is a bug with TF2, not MGEMod. A SourceMod extension fix for this is available [here](https://github.com/Kenzzer/JetPack_Fix).
