@@ -6,6 +6,7 @@
 #include <tf2_stocks>
 //#include <entity_prop_stocks>
 #include <sdkhooks>
+#include <sdktools>
 #include <morecolors> 
 
 // ====[ CONSTANTS ]===================================================
@@ -278,7 +279,6 @@ public OnPluginStart()
         g_fCappedTime[i] = 0.0;
         g_fTotalTime[i] = 0;
     }
-    
 
     // Parse default list of allowed classes.
     ParseAllowedClasses("", g_tfctClassAllowed);
@@ -343,17 +343,26 @@ public OnPluginStart()
 
     /*  This is here in the event of the plugin being hot-loaded while players are in the server.
         Should probably delete this, as the rest of the code doesn't really support hot-loading. */
-    if(!g_bNoStats)
-        for (new i=1;i<=MaxClients;i++)
-            if(IsValidClient(i))
-                OnClientPostAdminCheck(i);
-    
-    for (new i=0;i<=MaxClients;i++) 
+    PrintToChatAll("[MGEMod] Plugin reloaded. Slaying all players to avoid bugs.");
+    ServerCommand("tf_bot_kick all");
+    //if(!g_bNoStats)
+    //{
+    for (new i=1; i<=MaxClients; i++)
+    {
+        if(IsValidClient(i))
+        {
+            
+            ForcePlayerSuicide(i);
+            OnClientPostAdminCheck(i);
+        } 
+    }
+    //}
+    for (new i=1;i<=MaxClients;i++) 
     {
         g_bCanPlayerSwap[i] = true;
         g_bCanPlayerGetIntel[i] = true;
     }
-                
+
 }
 
 /* OnGetGameDescription(String:gameDesc[64])
@@ -2335,12 +2344,12 @@ ResetPlayer(client)
 
 ResetKiller(killer,arena_index)
 {
+    TF2_RemoveAllWeapons(killer);
     TF2_RegeneratePlayer(killer);
     new reset_hp = g_iPlayerHandicap[killer] ? g_iPlayerHandicap[killer] : RoundToNearest(float(g_iPlayerMaxHP[killer])*g_fArenaHPRatio[arena_index]);
     g_iPlayerHP[killer] = reset_hp;
     SetEntProp(killer, Prop_Data, "m_iHealth", reset_hp);
 }
-
 
 ResetClientAmmoCounts(client)
 {
