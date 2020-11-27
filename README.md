@@ -1,5 +1,4 @@
-# MGEMod [![Build Status](https://dev.azure.com/vancampalex/mgemod/_apis/build/status/Lange.MGEMod?branchName=master)](https://dev.azure.com/vancampalex/mgemod/_build/latest?definitionId=3&branchName=master)
-
+# MGEMod
 > A 1v1 and 2v2 training mod for Team Fortress 2
 
 For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
