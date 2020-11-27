@@ -88,7 +88,7 @@ Handle gcvar_reconnectInterval  = INVALID_HANDLE;
 Handle gcvar_spawnFile          = INVALID_HANDLE;
 
 // Classes
-TFClassType g_tfctClassAllowed[TFClassType]; // Special "TFClass_Type" data type.
+int g_tfctClassAllowed[TFClassType]; // Special "TFClass_Type" data type.
 
 // Arena Vars
 Handle g_tKothTimer[MAXARENAS+1];
@@ -281,7 +281,7 @@ public OnPluginStart()
     
 
     // Parse default list of allowed classes.
-    ParseAllowedClasses("",g_tfctClassAllowed);
+    ParseAllowedClasses("", g_tfctClassAllowed);
 
     // Only connect to the SQL DB if stats are enabled.
     if(!g_bNoStats)
@@ -2310,6 +2310,8 @@ ResetPlayer(client)
 
         TF2_RespawnPlayer(client);
     } else {
+        // test
+        TF2_RemoveAllWeapons(client);
         TF2_RegeneratePlayer(client);
         ExtinguishEntity(client);
     }
@@ -2442,7 +2444,7 @@ SetPlayerToAllowedClass(client, arena_index)
     }
 }
 
-ParseAllowedClasses(const String:sList[],output[TFClassType])
+ParseAllowedClasses(const char[] sList, output[TFClassType])
 {
     new count, String:a_class[9][9];
 
