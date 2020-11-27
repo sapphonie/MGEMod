@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "development"
+#define PL_VERSION "2.2.0"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -213,7 +213,7 @@ static const String:stockSounds[][]= // Sounds that do not need to be downloaded
 public Plugin:myinfo =
 {
   name = "MGEMod",
-  author = "Lange & Cprice; based on kAmmomod by Krolus.",
+  author = "Lange & Cprice; based on kAmmomod by Krolus - maintained by sappho.io",
   description = "Duel mod with realistic game situations.",
   version = PL_VERSION,
   url = "https://github.com/Langeh/MGEMod, http://steamcommunity.com/id/langeh"
