@@ -102,89 +102,89 @@ ConVar
 int g_tfctClassAllowed[TFClassType]; // Special "TFClass_Type" data type.
 
 // Arena Vars
-Handle g_tKothTimer[MAXARENAS+1];
+Handle g_tKothTimer[MAXARENAS + 1];
 char g_sArenaName[MAXARENAS + 1][64];
 
 float 
-	g_fArenaSpawnOrigin[MAXARENAS+1][MAXSPAWNS+1][3],
-	g_fArenaSpawnAngles[MAXARENAS+1][MAXSPAWNS+1][3],
-	g_fArenaHPRatio[MAXARENAS+1],
-	g_fArenaMinSpawnDist[MAXARENAS+1],
-	g_fArenaRespawnTime[MAXARENAS+1],
+	g_fArenaSpawnOrigin[MAXARENAS + 1][MAXSPAWNS+1][3],
+	g_fArenaSpawnAngles[MAXARENAS + 1][MAXSPAWNS+1][3],
+	g_fArenaHPRatio[MAXARENAS + 1],
+	g_fArenaMinSpawnDist[MAXARENAS + 1],
+	g_fArenaRespawnTime[MAXARENAS + 1],
 	g_fKothCappedPercent[MAXARENAS + 1],
 	g_fTotalTime[MAXARENAS + 1],
 	g_fCappedTime[MAXARENAS + 1];
 
 bool 
-	g_bArenaAmmomod[MAXARENAS+1],
-	g_bArenaMidair[MAXARENAS+1],
-	g_bArenaMGE[MAXARENAS+1],
-	g_bArenaEndif[MAXARENAS+1],
-	g_bArenaBBall[MAXARENAS+1],
-	g_bVisibleHoops[MAXARENAS+1],
-	g_bArenaInfAmmo[MAXARENAS+1],
-	g_bFourPersonArena[MAXARENAS+1],
-	g_bArenaShowHPToPlayers[MAXARENAS+1],
-	g_bArenaUltiduo[MAXARENAS+1],
-	g_bArenaKoth[MAXARENAS+1],
-	g_bPlayerTouchPoint[MAXARENAS+1][5],
-	g_bArenaTurris[MAXARENAS+1],
-	g_bOvertimePlayed[MAXARENAS+1][4],
+	g_bArenaAmmomod[MAXARENAS + 1],
+	g_bArenaMidair[MAXARENAS + 1],
+	g_bArenaMGE[MAXARENAS + 1],
+	g_bArenaEndif[MAXARENAS + 1],
+	g_bArenaBBall[MAXARENAS + 1],
+	g_bVisibleHoops[MAXARENAS + 1],
+	g_bArenaInfAmmo[MAXARENAS + 1],
+	g_bFourPersonArena[MAXARENAS + 1],
+	g_bArenaShowHPToPlayers[MAXARENAS + 1],
+	g_bArenaUltiduo[MAXARENAS + 1],
+	g_bArenaKoth[MAXARENAS + 1],
+	g_bPlayerTouchPoint[MAXARENAS + 1][5],
+	g_bArenaTurris[MAXARENAS + 1],
+	g_bOvertimePlayed[MAXARENAS + 1][4],
 	g_bTimerRunning[MAXARENAS + 1];
 
 int 
 	g_iArenaCount,
-	g_iCappingTeam[MAXARENAS+1],
-	g_iCapturePoint[MAXARENAS+1],
-	g_iDefaultCapTime[MAXARENAS+1],
-	g_iKothTimer[MAXARENAS+1][4],		// [what arena is the cap point in][Team Red or Team Blu Time left]
-	g_iPointState[MAXARENAS+1],	//1 = neutral, 2 = RED, 3 = BLU
-	g_iArenaScore[MAXARENAS+1][3],
-	g_iArenaQueue[MAXARENAS+1][MAXPLAYERS+1],
-	g_iArenaStatus[MAXARENAS+1],
-	g_iArenaCd[MAXARENAS+1],//countdown to round start
-	g_iArenaFraglimit[MAXARENAS+1],
-	g_iArenaMinRating[MAXARENAS+1],
-	g_iArenaMaxRating[MAXARENAS+1],
-	g_iArenaCdTime[MAXARENAS+1],
-	g_iArenaSpawns[MAXARENAS+1],
-	g_iBBallHoop[MAXARENAS+1][3], // [What arena the hoop is in][Hoop 1 or Hoop 2]
-	g_iBBallIntel[MAXARENAS+1],
-	g_iArenaEarlyLeave[MAXARENAS+1],
-	g_iELOMenuPage[MAXARENAS+1],
-	g_tfctArenaAllowedClasses[MAXARENAS+1][TFClassType]; // Special "TFClass_Type" data type.
+	g_iCappingTeam[MAXARENAS + 1],
+	g_iCapturePoint[MAXARENAS + 1],
+	g_iDefaultCapTime[MAXARENAS + 1],
+	g_iKothTimer[MAXARENAS + 1][4],		// [what arena is the cap point in][Team Red or Team Blu Time left]
+	g_iPointState[MAXARENAS + 1],	//1 = neutral, 2 = RED, 3 = BLU
+	g_iArenaScore[MAXARENAS + 1][3],
+	g_iArenaQueue[MAXARENAS + 1][MAXPLAYERS + 1],
+	g_iArenaStatus[MAXARENAS + 1],
+	g_iArenaCd[MAXARENAS + 1],//countdown to round start
+	g_iArenaFraglimit[MAXARENAS + 1],
+	g_iArenaMinRating[MAXARENAS + 1],
+	g_iArenaMaxRating[MAXARENAS + 1],
+	g_iArenaCdTime[MAXARENAS + 1],
+	g_iArenaSpawns[MAXARENAS + 1],
+	g_iBBallHoop[MAXARENAS + 1][3], // [What arena the hoop is in][Hoop 1 or Hoop 2]
+	g_iBBallIntel[MAXARENAS + 1],
+	g_iArenaEarlyLeave[MAXARENAS + 1],
+	g_iELOMenuPage[MAXARENAS + 1],
+	g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType]; // Special "TFClass_Type" data type.
 
 // Player vars
 Handle g_hWelcomeTimer[MAXPLAYERS + 1];
 char g_sPlayerSteamID[MAXPLAYERS + 1][32]; //saving steamid
 
 bool 
-	g_bPlayerTakenDirectHit[MAXPLAYERS+1],//player was hit directly
-	g_bPlayerRestoringAmmo[MAXPLAYERS+1],//player is awaiting full ammo restore
-	g_bPlayerHasIntel[MAXPLAYERS+1],
-	g_bHitBlip[MAXPLAYERS+1],
-	g_bShowHud[MAXPLAYERS+1] = true,
-	g_iPlayerWaiting[MAXPLAYERS+1],
-	g_bCanPlayerSwap[MAXPLAYERS+1],
+	g_bPlayerTakenDirectHit[MAXPLAYERS + 1],//player was hit directly
+	g_bPlayerRestoringAmmo[MAXPLAYERS + 1],//player is awaiting full ammo restore
+	g_bPlayerHasIntel[MAXPLAYERS + 1],
+	g_bHitBlip[MAXPLAYERS + 1],
+	g_bShowHud[MAXPLAYERS + 1] = true,
+	g_iPlayerWaiting[MAXPLAYERS + 1],
+	g_bCanPlayerSwap[MAXPLAYERS + 1],
 	g_bCanPlayerGetIntel[MAXPLAYERS + 1];
 	
 int 
-	g_iPlayerArena[MAXPLAYERS+1],
-	g_iPlayerSlot[MAXPLAYERS+1],
-	g_iPlayerHP[MAXPLAYERS+1], //true HP of players
-	g_iPlayerSpecTarget[MAXPLAYERS+1],
-	g_iPlayerMaxHP[MAXPLAYERS+1],
-	g_iClientParticle[MAXPLAYERS+1],
-	g_iPlayerClip[MAXPLAYERS+1][3],
-	g_iPlayerWins[MAXPLAYERS+1],
-	g_iPlayerLosses[MAXPLAYERS+1],
-	g_iPlayerRating[MAXPLAYERS+1],
+	g_iPlayerArena[MAXPLAYERS + 1],
+	g_iPlayerSlot[MAXPLAYERS + 1],
+	g_iPlayerHP[MAXPLAYERS + 1], //true HP of players
+	g_iPlayerSpecTarget[MAXPLAYERS + 1],
+	g_iPlayerMaxHP[MAXPLAYERS + 1],
+	g_iClientParticle[MAXPLAYERS + 1],
+	g_iPlayerClip[MAXPLAYERS + 1][3],
+	g_iPlayerWins[MAXPLAYERS + 1],
+	g_iPlayerLosses[MAXPLAYERS + 1],
+	g_iPlayerRating[MAXPLAYERS + 1],
 	g_iPlayerHandicap[MAXPLAYERS + 1];
 	
-TFClassType g_tfctPlayerClass[MAXPLAYERS+1];
+TFClassType g_tfctPlayerClass[MAXPLAYERS + 1];
 
 // Bot things
-bool g_bPlayerAskedForBot[MAXPLAYERS+1];
+bool g_bPlayerAskedForBot[MAXPLAYERS + 1];
 
 // Midair
 int g_iMidairHP;
