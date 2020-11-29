@@ -99,7 +99,8 @@ ConVar
 	gcvar_spawnFile;
 
 // Classes
-int g_tfctClassAllowed[TFClassType]; // Special "TFClass_Type" data type.
+//int g_tfctClassAllowed[TFClassType];
+bool g_tfctClassAllowed[9];
 
 // Arena Vars
 Handle g_tKothTimer[MAXARENAS + 1];
@@ -151,8 +152,10 @@ int
 	g_iBBallHoop[MAXARENAS + 1][3], // [What arena the hoop is in][Hoop 1 or Hoop 2]
 	g_iBBallIntel[MAXARENAS + 1],
 	g_iArenaEarlyLeave[MAXARENAS + 1],
-	g_iELOMenuPage[MAXARENAS + 1],
-	g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType]; // Special "TFClass_Type" data type.
+	g_iELOMenuPage[MAXARENAS + 1];
+	
+//int g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType];
+bool g_tfctArenaAllowedClasses[MAXARENAS + 1][9];
 
 // Player vars
 Handle g_hWelcomeTimer[MAXPLAYERS + 1];
@@ -261,7 +264,7 @@ public void OnPluginStart()
 	LoadTranslations("mgemod.phrases");
 	
 	//ConVars
-	CreateConVar("sm_mgemod_version", PL_VERSION, "MGEMod version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
+	CreateConVar("mgemod_version", PL_VERSION, "MGEMod version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
 	gcvar_fragLimit = CreateConVar("mgemod_fraglimit", "3", "Default frag limit in duel", FCVAR_NONE, true, 1.0);
 	gcvar_allowedClasses = CreateConVar("mgemod_allowed_classes", "soldier demoman scout", "Classes that players allowed to choose by default");
 	gcvar_blockFallDamage = CreateConVar("mgemod_blockdmg_fall", "0", "Block falldamage? (0 = Disabled)", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -336,25 +339,25 @@ public void OnPluginStart()
 	gcvar_reconnectInterval.AddChangeHook(handler_ConVarChange);
 	
 	// Create/register client commands.
-	RegConsoleCmd("sm_mgemod", Command_Menu, "MGEMod Menu");
-	RegConsoleCmd("sm_add", Command_Menu, "Usage: add <arena number/arena name>. Add to an arena.");
-	RegConsoleCmd("sm_swap", Command_Swap, "Ask your teammate to swap classes with you in ultiduo");
-	RegConsoleCmd("sm_remove", Command_Remove, "Remove from current arena.");
-	RegConsoleCmd("sm_top5", Command_Top5, "Display the Top 5 players.");
-	RegConsoleCmd("sm_hitblip", Command_ToogleHitblip, "Toggle hitblip.");
-	RegConsoleCmd("sm_hud", Command_ToggleHud, "Toggle text hud.");
-	RegConsoleCmd("sm_hidehud", Command_ToggleHud, "Toggle text hud. (alias)");
-	RegConsoleCmd("sm_rank", Command_Rank, "Usage: rank <player name>. Show that player's rank.");
-	RegConsoleCmd("sm_stats", Command_Rank, "Alias for \"rank\".");
-	RegConsoleCmd("sm_mgehelp", Command_Help);
-	RegConsoleCmd("sm_first", Command_First, "Join the first available arena.");
-	RegConsoleCmd("sm_handicap", Command_Handicap, "Reduce your maximum HP. Type '!handicap off' to disable.");
-	RegConsoleCmd("sm_spec_next", Command_Spec);
-	RegConsoleCmd("sm_spec_prev", Command_Spec);
-	RegConsoleCmd("sm_joinclass", Command_JoinClass);
-	RegAdminCmd("sm_loc", Command_Loc, ADMFLAG_BAN, "Shows client origin and angle vectors");
-	RegAdminCmd("sm_botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
-	RegAdminCmd("sm_conntest", Command_ConnectionTest, ADMFLAG_BAN, "MySQL connection test");
+	RegConsoleCmd("mgemod", Command_Menu, "MGEMod Menu");
+	RegConsoleCmd("add", Command_Menu, "Usage: add <arena number/arena name>. Add to an arena.");
+	RegConsoleCmd("swap", Command_Swap, "Ask your teammate to swap classes with you in ultiduo");
+	RegConsoleCmd("remove", Command_Remove, "Remove from current arena.");
+	RegConsoleCmd("top5", Command_Top5, "Display the Top 5 players.");
+	RegConsoleCmd("hitblip", Command_ToogleHitblip, "Toggle hitblip.");
+	RegConsoleCmd("hud", Command_ToggleHud, "Toggle text hud.");
+	RegConsoleCmd("hidehud", Command_ToggleHud, "Toggle text hud. (alias)");
+	RegConsoleCmd("rank", Command_Rank, "Usage: rank <player name>. Show that player's rank.");
+	RegConsoleCmd("stats", Command_Rank, "Alias for \"rank\".");
+	RegConsoleCmd("mgehelp", Command_Help);
+	RegConsoleCmd("first", Command_First, "Join the first available arena.");
+	RegConsoleCmd("handicap", Command_Handicap, "Reduce your maximum HP. Type '!handicap off' to disable.");
+	RegConsoleCmd("spec_next", Command_Spec);
+	RegConsoleCmd("spec_prev", Command_Spec);
+	RegConsoleCmd("joinclass", Command_JoinClass);
+	RegAdminCmd("loc", Command_Loc, ADMFLAG_BAN, "Shows client origin and angle vectors");
+	RegAdminCmd("botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
+	RegAdminCmd("conntest", Command_ConnectionTest, ADMFLAG_BAN, "MySQL connection test");
 	
 	AddCommandListener(Command_DropItem, "dropitem");
 	
@@ -2246,16 +2249,16 @@ bool LoadSpawnPoints()
 							g_bArenaMidair[g_iArenaCount] = kv.GetNum("midair", 0) ? true : false;
 							g_iArenaCdTime[g_iArenaCount] = kv.GetNum("cdtime", DEFAULT_CDTIME);
 							g_bArenaMGE[g_iArenaCount] = kv.GetNum("mge", 0) ? true : false;
-							g_fArenaHPRatio[g_iArenaCount] = KvGetFloat(kv, "hpratio", 1.5);
+							g_fArenaHPRatio[g_iArenaCount] = kv.GetFloat("hpratio", 1.5);
 							g_bArenaEndif[g_iArenaCount] = kv.GetNum("endif", 0) ? true : false;
 							g_bArenaBBall[g_iArenaCount] = kv.GetNum("bball", 0) ? true : false;
 							g_bVisibleHoops[g_iArenaCount] = kv.GetNum("vishoop", 0) ? true : false;
 							g_iArenaEarlyLeave[g_iArenaCount] = kv.GetNum("earlyleave", 0);
 							g_bArenaInfAmmo[g_iArenaCount] = kv.GetNum("infammo", 1) ? true : false;
 							g_bArenaShowHPToPlayers[g_iArenaCount] = kv.GetNum("showhp", 1) ? true : false;
-							g_fArenaMinSpawnDist[g_iArenaCount] = KvGetFloat(kv, "mindist", 100.0);
+							g_fArenaMinSpawnDist[g_iArenaCount] = kv.GetFloat("mindist", 100.0);
 							g_bFourPersonArena[g_iArenaCount] = kv.GetNum("4player", 0) ? true : false;
-							g_fArenaRespawnTime[g_iArenaCount] = KvGetFloat(kv, "respawntime", 0.1);
+							g_fArenaRespawnTime[g_iArenaCount] = kv.GetFloat("respawntime", 0.1);
 							g_bArenaAmmomod[g_iArenaCount] = kv.GetNum("ammomod", 0) ? true : false;
 							g_bArenaUltiduo[g_iArenaCount] = kv.GetNum("ultiduo", 0) ? true : false;
 							g_bArenaKoth[g_iArenaCount] = kv.GetNum("koth", 0) ? true : false;
@@ -2424,7 +2427,7 @@ void ResetIntel(int arena_index, any client = -1)
 
 void SetPlayerToAllowedClass(int client, int arena_index)
 {  // If a player's class isn't allowed, set it to one that is.
-	if (g_tfctPlayerClass[client] == view_as<TFClassType>(0) || !g_tfctArenaAllowedClasses[arena_index][g_tfctPlayerClass[client]])
+	if (g_tfctPlayerClass[client] == TFClass_Unknown || !g_tfctArenaAllowedClasses[arena_index][g_tfctPlayerClass[client]])
 	{
 		for (int i = 1; i <= 9; i++)
 		{
@@ -2432,20 +2435,19 @@ void SetPlayerToAllowedClass(int client, int arena_index)
 			{
 				if (g_bArenaUltiduo[arena_index] && g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] > SLOT_TWO)
 				{
-					int client_teammate;
-					client_teammate = getTeammate(client, g_iPlayerSlot[client], arena_index);
+					int client_teammate = getTeammate(client, g_iPlayerSlot[client], arena_index);
 					if (view_as<TFClassType>(i) == g_tfctPlayerClass[client_teammate])
 					{
 						//Tell the player what he did wrong
 						CPrintToChat(client, "Your team already has that class!");
 						//Change him classes and set his class to the only one available
-						if (g_tfctPlayerClass[client_teammate] == TF2_GetClass("soldier"))
+						if (g_tfctPlayerClass[client_teammate] == TFClass_Soldier)
 						{
-							g_tfctPlayerClass[client] = TF2_GetClass("medic");
+							g_tfctPlayerClass[client] = TFClass_Medic;
 						}
 						else
 						{
-							g_tfctPlayerClass[client] = TF2_GetClass("soldier");
+							g_tfctPlayerClass[client] = TFClass_Soldier;
 						}
 					}
 				}
@@ -2458,7 +2460,7 @@ void SetPlayerToAllowedClass(int client, int arena_index)
 	}
 }
 
-void ParseAllowedClasses(const char[] sList, int output[TFClassType])
+void ParseAllowedClasses(const char[] sList, bool[] output)
 {
 	int count; 
 	char a_class[9][9];
@@ -2472,15 +2474,16 @@ void ParseAllowedClasses(const char[] sList, int output[TFClassType])
 		count = ExplodeString(sDefList, " ", a_class, 9, 9);
 	}
 	
-	for (int i = 1; i <= 9; i++)
-	output[i] = 0;
+	for (int i = 1; i <= 9; i++) {
+		output[i] = false;
+	}
 	
 	for (int i = 0; i < count; i++)
 	{
 		TFClassType c = TF2_GetClass(a_class[i]);
 		
 		if (c)
-			output[c] = 1;
+			output[view_as<int>(c)] = true;
 	}
 }
 
@@ -2883,7 +2886,8 @@ public void handler_ConVarChange(Handle convar, const char[] oldValue, const cha
 
 // ====[ COMMANDS ]====================================================
 public Action Command_Menu(int client, int args)
-{  //handle commands "!ammomod" "!add" and such //building queue's menu and listing arena's	
+{  	
+	//handle commands "!ammomod" "!add" and such //building queue's menu and listing arena's	
 	int playerPrefTeam = 0;
 	
 	if (!IsValidClient(client))
@@ -3024,7 +3028,7 @@ public Action Command_JoinClass(int client, int args)
 		TFClassType new_class = TF2_GetClass(s_class);
 		
 		// Work-around to enable heavy. See https://bugs.alliedmods.net/show_bug.cgi?id=5243
-		if (!new_class && StrEqual(s_class, "heavyweapons") && g_tfctArenaAllowedClasses[arena_index][6] == 1)
+		if (!new_class && StrEqual(s_class, "heavyweapons") && g_tfctArenaAllowedClasses[arena_index][6])
 			new_class = TFClass_Heavy;
 		
 		if (new_class == g_tfctPlayerClass[client])
@@ -3032,7 +3036,7 @@ public Action Command_JoinClass(int client, int args)
 		
 		if (arena_index == 0) // if client is on arena
 		{
-			if (!g_tfctClassAllowed[new_class]) // checking global class restrctions
+			if (!g_tfctClassAllowed[view_as<int>(new_class)]) // checking global class restrctions
 			{
 				CPrintToChat(client, "%t", "ClassIsNotAllowed");
 				return Plugin_Handled;
@@ -4309,6 +4313,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 public void RegenKiller(any killer)
 {	
 	TF2_RegeneratePlayer(killer);
+	PrintCenterTextAll("Killer was %N", killer);
 }
 
 public Action Timer_WelcomePlayer(Handle timer, int userid)
