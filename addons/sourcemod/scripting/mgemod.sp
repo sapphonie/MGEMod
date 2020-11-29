@@ -8,7 +8,7 @@
 #include <colors> 
 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.2.0"
+#define PL_VERSION "2.2.1"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -749,7 +749,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] += FloatDiv(7.0, float(cap));
+							g_fCappedTime[arena_index2] += 7.0 / float(cap);
 						}
 						g_iCappingTeam[arena_index2] = TEAM_RED;
 						continue;
@@ -800,7 +800,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] += FloatDiv(7.0, float(cap));
+							g_fCappedTime[arena_index2] += 7.0, float(cap);
 						}
 						g_iCappingTeam[arena_index2] = TEAM_BLU;
 						continue;
@@ -851,7 +851,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] -= FloatDiv(7.0, float(cap));
+							g_fCappedTime[arena_index2] -= 7.0, float(cap);
 						}
 						g_iCappingTeam[arena_index2] = TEAM_BLU;
 						continue;
@@ -899,7 +899,7 @@ public OnGameFrame()
 						//True harmonic cap time, yes!
 						for(; cap > 0; cap--)
 						{
-							g_fCappedTime[arena_index2] -= FloatDiv(7.0, float(cap));
+							g_fCappedTime[arena_index2] -= 7.0, float(cap);
 						}
 						g_iCappingTeam[arena_index2] = TEAM_RED;
 						continue;
@@ -3873,6 +3873,13 @@ public Action:Event_PlayerDeath(Handle:event, const String:name[], bool:dontBroa
 	new killer_team_slot = (killer_slot > 2) ? (killer_slot - 2) : killer_slot;
 	new victim_team_slot = (victim_slot > 2) ? (victim_slot - 2) : victim_slot;
 	
+	// don't detect dead ringer deaths
+	int victim_deathflags = GetEventInt(event, "death_flags");
+	if (victim_deathflags & 32)
+	{
+		return Plugin_Continue;
+	}
+
 	if(g_bFourPersonArena[arena_index])
 	{
 		victim_teammate = getTeammate(victim, victim_slot, arena_index);
@@ -4838,7 +4845,7 @@ public Action:Timer_CountDownKoth(Handle:timer, any:arena_index)
 		}
 		if(g_fTotalTime[arena_index] != 0)
 		{
-			new Float:cap = FloatDiv(g_fCappedTime[arena_index] * 8.4, float(g_fTotalTime[arena_index]));
+			float cap = (g_fCappedTime[arena_index] * 8.4) / g_fTotalTime[arena_index];
 			if(!g_bArenaUltiduo[arena_index])
 				cap = cap * 1.5;
 			g_fKothCappedPercent[arena_index] += cap;
