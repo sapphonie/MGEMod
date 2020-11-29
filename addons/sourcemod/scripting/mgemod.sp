@@ -371,17 +371,19 @@ public void OnPluginStart()
 	
 	/*	This is here in the event of the plugin being hot-loaded while players are in the server.
 		Should probably delete this, as the rest of the code doesn't really support hot-loading. */
-	if (!g_bNoStats)
-		for (int i = 1; i <= MaxClients; i++)
-	if (IsValidClient(i))
-		OnClientPostAdminCheck(i);
+		
+	PrintToChatAll("[MGEMod] Plugin reloaded. Slaying all players to avoid bugs.");
 	
-	for (int i = 0; i <= MaxClients; i++)
+	for (int i = 1; i <= MaxClients; i++) 
 	{
-		g_bCanPlayerSwap[i] = true;
-		g_bCanPlayerGetIntel[i] = true;
+		if (IsValidClient(i))
+		{
+			ForcePlayerSuicide(i);
+			OnClientPostAdminCheck(i);
+			g_bCanPlayerSwap[i] = true;
+			g_bCanPlayerGetIntel[i] = true;
+		}
 	}
-	
 }
 
 /* OnGetGameDescription(String:gameDesc[64])
@@ -2313,7 +2315,6 @@ int ResetPlayer(int client)
 	//if (player_slot - team != SLOT_ONE - TEAM_RED) 
 	//	ChangeClientTeam(client, player_slot + TEAM_RED - SLOT_ONE);
 	
-	
 	TFClassType class;
 	class = g_tfctPlayerClass[client] ? g_tfctPlayerClass[client] : TFClass_Soldier;
 	
@@ -2346,13 +2347,12 @@ int ResetPlayer(int client)
 }
 
 void ResetKiller(int killer, int arena_index)
-{
-	TF2_RegeneratePlayer(killer);
+{	
 	int reset_hp = g_iPlayerHandicap[killer] ? g_iPlayerHandicap[killer] : RoundToNearest(float(g_iPlayerMaxHP[killer]) * g_fArenaHPRatio[arena_index]);
 	g_iPlayerHP[killer] = reset_hp;
 	SetEntProp(killer, Prop_Data, "m_iHealth", reset_hp);
+	RequestFrame(RegenKiller, killer);
 }
-
 
 void ResetClientAmmoCounts(int client)
 {
@@ -4305,6 +4305,11 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 **	
 ** ------------------------------------------------------------------
 **/
+
+public void RegenKiller(any killer)
+{	
+	TF2_RegeneratePlayer(killer);
+}
 
 public Action Timer_WelcomePlayer(Handle timer, int userid)
 {
