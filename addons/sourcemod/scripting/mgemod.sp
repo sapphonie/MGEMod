@@ -6,10 +6,9 @@
 #include <tf2_stocks>
 #include <entity_prop_stocks>
 #include <sdkhooks>
-#include <colors> 
-
+#include <morecolors> 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.2.1"
+#define PL_VERSION "2.2.2"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -99,8 +98,7 @@ ConVar
 	gcvar_spawnFile;
 
 // Classes
-//int g_tfctClassAllowed[TFClassType];
-bool g_tfctClassAllowed[9];
+bool g_tfctClassAllowed[10];
 
 // Arena Vars
 Handle g_tKothTimer[MAXARENAS + 1];
@@ -237,10 +235,10 @@ static const char stockSounds[][] =  // Sounds that do not need to be downloaded
 public Plugin myinfo =
 {
 	name = "MGEMod",
-	author = "Lange & Cprice; based on kAmmomod by Krolus - maintained by sappho.io // ampere",
+	author = "Lange & Cprice; based on kAmmomod by Krolus - maintained by sappho.io",
 	description = "Duel mod with realistic game situations.",
 	version = PL_VERSION,
-	url = "https://github.com/Langeh/MGEMod, http://steamcommunity.com/id/langeh"
+	url = "https://github.com/sapphonie/MGEMod, https://sappho.io"
 }
 /*
 ** ------------------------------------------------------------------
@@ -264,7 +262,7 @@ public void OnPluginStart()
 	LoadTranslations("mgemod.phrases");
 	
 	//ConVars
-	CreateConVar("mgemod_version", PL_VERSION, "MGEMod version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
+	CreateConVar("sm_mgemod_version", PL_VERSION, "MGEMod version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
 	gcvar_fragLimit = CreateConVar("mgemod_fraglimit", "3", "Default frag limit in duel", FCVAR_NONE, true, 1.0);
 	gcvar_allowedClasses = CreateConVar("mgemod_allowed_classes", "soldier demoman scout", "Classes that players allowed to choose by default");
 	gcvar_blockFallDamage = CreateConVar("mgemod_blockdmg_fall", "0", "Block falldamage? (0 = Disabled)", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -627,9 +625,9 @@ public void OnClientDisconnect(int client)
 				GetClientName(next_client, playername, sizeof(playername));
 				
 				if (!g_bNoStats && !g_bNoDisplayRating)
-					CPrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
 				else
-					CPrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
 				
 				
 			} else {
@@ -673,9 +671,9 @@ public void OnClientDisconnect(int client)
 				GetClientName(next_client, playername, sizeof(playername));
 				
 				if (!g_bNoStats && !g_bNoDisplayRating)
-					CPrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
 				else
-					CPrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
 				
 				
 			} else {
@@ -706,7 +704,6 @@ public void OnClientDisconnect(int client)
 	if (g_hWelcomeTimer[client] != null)
 	{
 		delete g_hWelcomeTimer[client];
-		g_hWelcomeTimer[client] = null;
 	}
 }
 
@@ -1069,7 +1066,7 @@ public Action OnTouchHoop(int entity, int other)
 		char client_name[MAX_NAME_LENGTH];
 		GetClientName(client, client_name, sizeof(client_name));
 		
-		CPrintToChat(client, "%t", "bballdunk", foe_name);
+		MC_PrintToChat(client, "%t", "bballdunk", foe_name);
 		
 		g_bPlayerHasIntel[client] = false;
 		g_iArenaScore[arena_index][client_team_slot] += 1;
@@ -1091,7 +1088,7 @@ public Action OnTouchHoop(int entity, int other)
 				Format(foe_name, sizeof(foe_name), "%s and %s", foe_name, foe_teammate_name);
 			}
 			
-			CPrintToChatAll("%t", "XdefeatsY", client_name, g_iArenaScore[arena_index][client_team_slot], foe_name, g_iArenaScore[arena_index][foe_team_slot], fraglimit, g_sArenaName[arena_index]);
+			MC_PrintToChatAll("%t", "XdefeatsY", client_name, g_iArenaScore[arena_index][client_team_slot], foe_name, g_iArenaScore[arena_index][foe_team_slot], fraglimit, g_sArenaName[arena_index]);
 			
 			if (!g_bNoStats && !g_bFourPersonArena[arena_index])
 				CalcELO(client, foe);
@@ -1806,7 +1803,7 @@ void RemoveFromQueue(int client, bool calcstats = false, bool specfix = false)
 					{
 						CalcELO(foe, client);
 						CalcELO(foe2, client);
-						CPrintToChatAll("%t", "XdefeatsYearly", foe_name, g_iArenaScore[arena_index][foe_team_slot], player_name, g_iArenaScore[arena_index][player_team_slot], g_sArenaName[arena_index]);
+						MC_PrintToChatAll("%t", "XdefeatsYearly", foe_name, g_iArenaScore[arena_index][foe_team_slot], player_name, g_iArenaScore[arena_index][player_team_slot], g_sArenaName[arena_index]);
 					}
 				}
 			}
@@ -1823,9 +1820,9 @@ void RemoveFromQueue(int client, bool calcstats = false, bool specfix = false)
 				GetClientName(next_client, playername, sizeof(playername));
 				
 				if (!g_bNoStats && !g_bNoDisplayRating)
-					CPrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
 				else
-					CPrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
 				
 				
 			} else {
@@ -1882,7 +1879,7 @@ void RemoveFromQueue(int client, bool calcstats = false, bool specfix = false)
 					if (g_iArenaScore[arena_index][foe_slot] >= g_iArenaEarlyLeave[arena_index])
 					{
 						CalcELO(foe, client);
-						CPrintToChatAll("%t", "XdefeatsYearly", foe_name, g_iArenaScore[arena_index][foe_slot], player_name, g_iArenaScore[arena_index][player_slot], g_sArenaName[arena_index]);
+						MC_PrintToChatAll("%t", "XdefeatsYearly", foe_name, g_iArenaScore[arena_index][foe_slot], player_name, g_iArenaScore[arena_index][player_slot], g_sArenaName[arena_index]);
 					}
 				}
 			}
@@ -1899,9 +1896,9 @@ void RemoveFromQueue(int client, bool calcstats = false, bool specfix = false)
 				GetClientName(next_client, playername, sizeof(playername));
 				
 				if (!g_bNoStats && !g_bNoDisplayRating)
-					CPrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArena", playername, g_iPlayerRating[next_client], g_sArenaName[arena_index]);
 				else
-					CPrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
+					MC_PrintToChatAll("%t", "JoinsArenaNoStats", playername, g_sArenaName[arena_index]);
 				
 				
 			} else {
@@ -1979,7 +1976,7 @@ void AddInQueue(int client, int arena_index, bool showmsg = true, int playerPref
 	
 	if (showmsg)
 	{
-		CPrintToChat(client, "%t", "ChoseArena", g_sArenaName[arena_index]);
+		MC_PrintToChat(client, "%t", "ChoseArena", g_sArenaName[arena_index]);
 	}
 	if (g_bFourPersonArena[arena_index])
 	{
@@ -1989,9 +1986,9 @@ void AddInQueue(int client, int arena_index, bool showmsg = true, int playerPref
 			GetClientName(client, name, sizeof(name));
 			
 			if (!g_bNoStats && !g_bNoDisplayRating)
-				CPrintToChatAll("%t", "JoinsArena", name, g_iPlayerRating[client], g_sArenaName[arena_index]);
+				MC_PrintToChatAll("%t", "JoinsArena", name, g_iPlayerRating[client], g_sArenaName[arena_index]);
 			else
-				CPrintToChatAll("%t", "JoinsArenaNoStats", name, g_sArenaName[arena_index]);
+				MC_PrintToChatAll("%t", "JoinsArenaNoStats", name, g_sArenaName[arena_index]);
 			
 			if (g_iArenaQueue[arena_index][SLOT_ONE] && g_iArenaQueue[arena_index][SLOT_TWO] && g_iArenaQueue[arena_index][SLOT_THREE] && g_iArenaQueue[arena_index][SLOT_FOUR])
 			{
@@ -2003,9 +2000,9 @@ void AddInQueue(int client, int arena_index, bool showmsg = true, int playerPref
 			if (GetClientTeam(client) != TEAM_SPEC)
 				ChangeClientTeam(client, TEAM_SPEC);
 			if (player_slot == SLOT_FOUR + 1)
-				CPrintToChat(client, "%t", "NextInLine");
+				MC_PrintToChat(client, "%t", "NextInLine");
 			else
-				CPrintToChat(client, "%t", "InLine", player_slot - SLOT_FOUR);
+				MC_PrintToChat(client, "%t", "InLine", player_slot - SLOT_FOUR);
 		}
 	}
 	else
@@ -2016,9 +2013,9 @@ void AddInQueue(int client, int arena_index, bool showmsg = true, int playerPref
 			GetClientName(client, name, sizeof(name));
 			
 			if (!g_bNoStats && !g_bNoDisplayRating)
-				CPrintToChatAll("%t", "JoinsArena", name, g_iPlayerRating[client], g_sArenaName[arena_index]);
+				MC_PrintToChatAll("%t", "JoinsArena", name, g_iPlayerRating[client], g_sArenaName[arena_index]);
 			else
-				CPrintToChatAll("%t", "JoinsArenaNoStats", name, g_sArenaName[arena_index]);
+				MC_PrintToChatAll("%t", "JoinsArenaNoStats", name, g_sArenaName[arena_index]);
 			
 			if (g_iArenaQueue[arena_index][SLOT_ONE] && g_iArenaQueue[arena_index][SLOT_TWO])
 			{
@@ -2029,9 +2026,9 @@ void AddInQueue(int client, int arena_index, bool showmsg = true, int playerPref
 			if (GetClientTeam(client) != TEAM_SPEC)
 				ChangeClientTeam(client, TEAM_SPEC);
 			if (player_slot == SLOT_TWO + 1)
-				CPrintToChat(client, "%t", "NextInLine");
+				MC_PrintToChat(client, "%t", "NextInLine");
 			else
-				CPrintToChat(client, "%t", "InLine", player_slot - SLOT_TWO);
+				MC_PrintToChat(client, "%t", "InLine", player_slot - SLOT_TWO);
 		}
 	}
 	
@@ -2061,10 +2058,10 @@ void CalcELO(int winner, int loser)
 	db.Escape(g_sMapName, sCleanMapName, sizeof(sCleanMapName));
 	
 	if (IsValidClient(winner) && !g_bNoDisplayRating)
-		CPrintToChat(winner, "%t", "GainedPoints", winnerscore);
+		MC_PrintToChat(winner, "%t", "GainedPoints", winnerscore);
 	
 	if (IsValidClient(loser) && !g_bNoDisplayRating)
-		CPrintToChat(loser, "%t", "LostPoints", loserscore);
+		MC_PrintToChat(loser, "%t", "LostPoints", loserscore);
 	
 	//This is necessary for when a player leaves a 2v2 arena that is almost done.
 	//I don't want to penalize the player that doesn't leave, so only the winners/leavers ELO will be effected.
@@ -2124,16 +2121,16 @@ void CalcELO2(int winner, int winner2, int loser, int loser2)
 	db.Escape(g_sMapName, sCleanMapName, sizeof(sCleanMapName));
 	
 	if (IsValidClient(winner) && !g_bNoDisplayRating)
-		CPrintToChat(winner, "%t", "GainedPoints", winnerscore);
+		MC_PrintToChat(winner, "%t", "GainedPoints", winnerscore);
 	
 	if (IsValidClient(winner2) && !g_bNoDisplayRating)
-		CPrintToChat(winner2, "%t", "GainedPoints", winnerscore);
+		MC_PrintToChat(winner2, "%t", "GainedPoints", winnerscore);
 	
 	if (IsValidClient(loser) && !g_bNoDisplayRating)
-		CPrintToChat(loser, "%t", "LostPoints", loserscore);
+		MC_PrintToChat(loser, "%t", "LostPoints", loserscore);
 	
 	if (IsValidClient(loser2) && !g_bNoDisplayRating)
-		CPrintToChat(loser2, "%t", "LostPoints", loserscore);
+		MC_PrintToChat(loser2, "%t", "LostPoints", loserscore);
 	
 	
 	// DB entry for this specific duel.
@@ -2439,7 +2436,7 @@ void SetPlayerToAllowedClass(int client, int arena_index)
 					if (view_as<TFClassType>(i) == g_tfctPlayerClass[client_teammate])
 					{
 						//Tell the player what he did wrong
-						CPrintToChat(client, "Your team already has that class!");
+						MC_PrintToChat(client, "Your team already has that class!");
 						//Change him classes and set his class to the only one available
 						if (g_tfctPlayerClass[client_teammate] == TFClass_Soldier)
 						{
@@ -2662,11 +2659,11 @@ public int Menu_Main(Menu menu, MenuAction action, int param1, int param2)
 				
 				if (minrating > 0 && playerrating < minrating)
 				{
-					CPrintToChat(client, "%t", "LowRating", playerrating, minrating);
+					MC_PrintToChat(client, "%t", "LowRating", playerrating, minrating);
 					ShowMainMenu(client, false);
 					return;
 				} else if (maxrating > 0 && playerrating > maxrating) {
-					CPrintToChat(client, "%t", "HighRating", playerrating, maxrating);
+					MC_PrintToChat(client, "%t", "HighRating", playerrating, maxrating);
 					ShowMainMenu(client, false);
 					return;
 				}
@@ -3038,7 +3035,7 @@ public Action Command_JoinClass(int client, int args)
 		{
 			if (!g_tfctClassAllowed[view_as<int>(new_class)]) // checking global class restrctions
 			{
-				CPrintToChat(client, "%t", "ClassIsNotAllowed");
+				MC_PrintToChat(client, "%t", "ClassIsNotAllowed");
 				return Plugin_Handled;
 			} else {
 				//if its ultiduo and a 4 man arena
@@ -3048,7 +3045,7 @@ public Action Command_JoinClass(int client, int args)
 					if (new_class == g_tfctPlayerClass[client_teammate])
 					{
 						//Tell the player what he did wrong
-						CPrintToChat(client, "Your team already has that class!");
+						MC_PrintToChat(client, "Your team already has that class!");
 						return Plugin_Handled;
 					}
 					else
@@ -3072,7 +3069,7 @@ public Action Command_JoinClass(int client, int args)
 		{
 			if (!g_tfctArenaAllowedClasses[arena_index][new_class])
 			{
-				CPrintToChat(client, "%t", "ClassIsNotAllowed");
+				MC_PrintToChat(client, "%t", "ClassIsNotAllowed");
 				return Plugin_Handled;
 			}
 			
@@ -3083,7 +3080,7 @@ public Action Command_JoinClass(int client, int args)
 				if (new_class == g_tfctPlayerClass[client_teammate])
 				{
 					//Tell the player what he did wrong
-					CPrintToChat(client, "Your team already has that class!");
+					MC_PrintToChat(client, "Your team already has that class!");
 					return Plugin_Handled;
 				}
 				else
@@ -3118,8 +3115,8 @@ public Action Command_JoinClass(int client, int args)
 							{
 								
 								g_iArenaScore[arena_index][killer_team_slot] += 1;
-								CPrintToChat(killer, "%t", "ClassChangePointOpponent");
-								CPrintToChat(client, "%t", "ClassChangePoint");
+								MC_PrintToChat(killer, "%t", "ClassChangePointOpponent");
+								MC_PrintToChat(client, "%t", "ClassChangePoint");
 								
 								if (g_bFourPersonArena[arena_index] && killer_teammate)
 									CreateTimer(3.0, Timer_NewRound, arena_index);
@@ -3164,7 +3161,7 @@ public Action Command_JoinClass(int client, int args)
 									Format(killer_name, sizeof(killer_name), "%s and %s", killer_name, killer_teammate_name);
 									Format(victim_name, sizeof(victim_name), "%s and %s", victim_name, victim_teammate_name);
 								}
-								CPrintToChatAll("%t", "XdefeatsY", killer_name, g_iArenaScore[arena_index][killer_team_slot], victim_name, g_iArenaScore[arena_index][client_team_slot], fraglimit, g_sArenaName[arena_index]);
+								MC_PrintToChatAll("%t", "XdefeatsY", killer_name, g_iArenaScore[arena_index][killer_team_slot], victim_name, g_iArenaScore[arena_index][client_team_slot], fraglimit, g_sArenaName[arena_index]);
 								
 								g_iArenaStatus[arena_index] = AS_REPORTED;
 								
@@ -3205,7 +3202,7 @@ public Action Command_JoinClass(int client, int args)
 				}
 				else
 				{
-					CPrintToChat(client, "%t", "NoClassChange");
+					MC_PrintToChat(client, "%t", "NoClassChange");
 					return Plugin_Handled;
 				}
 			}
@@ -3317,9 +3314,9 @@ public Action Command_Rank(int client, int args)
 	if (args == 0)
 	{
 		if (g_bNoDisplayRating)
-			CPrintToChat(client, "%t", "MyRankNoRating", g_iPlayerWins[client], g_iPlayerLosses[client]);
+			MC_PrintToChat(client, "%t", "MyRankNoRating", g_iPlayerWins[client], g_iPlayerLosses[client]);
 		else
-			CPrintToChat(client, "%t", "MyRank", g_iPlayerRating[client], g_iPlayerWins[client], g_iPlayerLosses[client]);
+			MC_PrintToChat(client, "%t", "MyRank", g_iPlayerRating[client], g_iPlayerWins[client], g_iPlayerLosses[client]);
 	} else {
 		char argstr[64];
 		GetCmdArgString(argstr, sizeof(argstr));
@@ -3328,9 +3325,9 @@ public Action Command_Rank(int client, int args)
 		if (targ == client)
 		{
 			if (g_bNoDisplayRating)
-				CPrintToChat(client, "%t", "MyRankNoRating", g_iPlayerWins[client], g_iPlayerLosses[client]);
+				MC_PrintToChat(client, "%t", "MyRankNoRating", g_iPlayerWins[client], g_iPlayerLosses[client]);
 			else
-				CPrintToChat(client, "%t", "MyRank", g_iPlayerRating[client], g_iPlayerWins[client], g_iPlayerLosses[client]);
+				MC_PrintToChat(client, "%t", "MyRank", g_iPlayerRating[client], g_iPlayerWins[client], g_iPlayerLosses[client]);
 		} else if (targ != -1) {
 			if (g_bNoDisplayRating)
 				PrintToChat(client, "\x03%N\x01 has \x04%i\x01 wins and \x04%i\x01 losses. You have a \x04%i%%\x01 chance of beating him.", targ, g_iPlayerWins[targ], g_iPlayerLosses[targ], RoundFloat((1 / (Pow(10.0, float((g_iPlayerRating[targ] - g_iPlayerRating[client])) / 400) + 1)) * 100));
@@ -3415,7 +3412,7 @@ public Action Command_Handicap(int client, int args)
 	
 	if (!arena_index || g_bArenaMidair[arena_index])
 	{
-		CPrintToChat(client, "%t", "MustJoinArena");
+		MC_PrintToChat(client, "%t", "MustJoinArena");
 		g_iPlayerHandicap[client] = 0;
 		return Plugin_Handled;
 	}
@@ -3423,9 +3420,9 @@ public Action Command_Handicap(int client, int args)
 	if (args == 0)
 	{
 		if (g_iPlayerHandicap[client] == 0)
-			CPrintToChat(client, "%t", "NoCurrentHandicap", g_iPlayerHandicap[client]);
+			MC_PrintToChat(client, "%t", "NoCurrentHandicap", g_iPlayerHandicap[client]);
 		else
-			CPrintToChat(client, "%t", "CurrentHandicap", g_iPlayerHandicap[client]);
+			MC_PrintToChat(client, "%t", "CurrentHandicap", g_iPlayerHandicap[client]);
 	} else {
 		char argstr[64];
 		GetCmdArgString(argstr, sizeof(argstr));
@@ -3433,17 +3430,17 @@ public Action Command_Handicap(int client, int args)
 		
 		if (StrEqual(argstr, "off", false))
 		{
-			CPrintToChat(client, "%t", "HandicapDisabled");
+			MC_PrintToChat(client, "%t", "HandicapDisabled");
 			g_iPlayerHandicap[client] = 0;
 			return Plugin_Handled;
 		}
 		
 		if (argint > RoundToNearest(float(g_iPlayerMaxHP[client]) * g_fArenaHPRatio[arena_index]))
 		{
-			CPrintToChat(client, "%t", "InvalidHandicap");
+			MC_PrintToChat(client, "%t", "InvalidHandicap");
 			g_iPlayerHandicap[client] = 0;
 		} else if (argint <= 0) {
-			CPrintToChat(client, "%t", "InvalidHandicap");
+			MC_PrintToChat(client, "%t", "InvalidHandicap");
 		} else {
 			g_iPlayerHandicap[client] = argint;
 			
@@ -3672,7 +3669,7 @@ public void T_SQL_Top5(Database owner, DBResultSet hndl, const char[] error, any
 		
 		ShowTop5Menu(client, name, rating);
 	} else {
-		CPrintToChat(client, "%t", "top5error");
+		MC_PrintToChat(client, "%t", "top5error");
 	}
 	
 }
@@ -3942,17 +3939,17 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 		if (g_bFourPersonArena[arena_index] && IsValidClient(attacker) && IsPlayerAlive(attacker))
 		{
 			if ((g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index] || g_bArenaKoth[arena_index]) && (victim != attacker))
-				CPrintToChat(victim, "%t", "HPLeft", GetClientHealth(attacker));
+				MC_PrintToChat(victim, "%t", "HPLeft", GetClientHealth(attacker));
 			else if (victim != attacker)
-				CPrintToChat(victim, "%t", "HPLeft", g_iPlayerHP[attacker]);
+				MC_PrintToChat(victim, "%t", "HPLeft", g_iPlayerHP[attacker]);
 		}
 		//in 1v1 arenas we can assume the person who killed you is the other person in the arena
 		else if (IsValidClient(killer) && IsPlayerAlive(killer))
 		{
 			if (g_bArenaMGE[arena_index] || g_bArenaBBall[arena_index] || g_bArenaKoth[arena_index])
-				CPrintToChat(victim, "%t", "HPLeft", GetClientHealth(killer));
+				MC_PrintToChat(victim, "%t", "HPLeft", GetClientHealth(killer));
 			else
-				CPrintToChat(victim, "%t", "HPLeft", g_iPlayerHP[killer]);
+				MC_PrintToChat(victim, "%t", "HPLeft", g_iPlayerHP[killer]);
 		}
 	}
 	
@@ -3988,7 +3985,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 			Format(victim_name, sizeof(victim_name), "%s and %s", victim_name, victim_teammate_name);
 		}
 		
-		CPrintToChatAll("%t", "XdefeatsY", killer_name, g_iArenaScore[arena_index][killer_team_slot], victim_name, g_iArenaScore[arena_index][victim_team_slot], fraglimit, g_sArenaName[arena_index]);
+		MC_PrintToChatAll("%t", "XdefeatsY", killer_name, g_iArenaScore[arena_index][killer_team_slot], victim_name, g_iArenaScore[arena_index][victim_team_slot], fraglimit, g_sArenaName[arena_index]);
 		
 		if (!g_bNoStats && !g_bFourPersonArena[arena_index])
 			CalcELO(killer, victim);
@@ -4167,7 +4164,7 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
 		
 		if (arena_index && ((!g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] <= SLOT_TWO) || (g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] <= SLOT_FOUR && !isPlayerWaiting(client))))
 		{
-			CPrintToChat(client, "%t", "SpecRemove");
+			MC_PrintToChat(client, "%t", "SpecRemove");
 			RemoveFromQueue(client, true);
 		}
 	} else if (IsValidClient(client)) {  // this code fixing spawn exploit
@@ -4313,7 +4310,6 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 public void RegenKiller(any killer)
 {	
 	TF2_RegeneratePlayer(killer);
-	PrintCenterTextAll("Killer was %N", killer);
 }
 
 public Action Timer_WelcomePlayer(Handle timer, int userid)
@@ -4323,10 +4319,10 @@ public Action Timer_WelcomePlayer(Handle timer, int userid)
 	if (!IsValidClient(client))
 		return;
 	
-	CPrintToChat(client, "%t", "Welcome1", PL_VERSION);
+	MC_PrintToChat(client, "%t", "Welcome1", PL_VERSION);
 	if (StrContains(g_sMapName, "mge_", false) == 0)
-		CPrintToChat(client, "%t", "Welcome2");
-	CPrintToChat(client, "%t", "Welcome3");
+		MC_PrintToChat(client, "%t", "Welcome2");
+	MC_PrintToChat(client, "%t", "Welcome3");
 	g_hWelcomeTimer[client] = null;
 }
 
@@ -4740,7 +4736,7 @@ public Action Timer_ShowAdv(Handle timer, int userid)
 	
 	if (IsValidClient(client) && g_iPlayerArena[client] == 0)
 	{
-		CPrintToChat(client, "%t", "Adv");
+		MC_PrintToChat(client, "%t", "Adv");
 		CreateTimer(15.0, Timer_ShowAdv, userid);
 	}
 	
@@ -5427,7 +5423,7 @@ public void EndKoth(any arena_index, any winner_team)
 			Format(foe_name, sizeof(foe_name), "%s and %s", foe_name, foe_teammate_name);
 		}
 		
-		CPrintToChatAll("%t", "XdefeatsY", client_name, g_iArenaScore[arena_index][winner_team], foe_name, g_iArenaScore[arena_index][foe_slot], fraglimit, g_sArenaName[arena_index]);
+		MC_PrintToChatAll("%t", "XdefeatsY", client_name, g_iArenaScore[arena_index][winner_team], foe_name, g_iArenaScore[arena_index][foe_slot], fraglimit, g_sArenaName[arena_index]);
 		
 		if (!g_bNoStats && !g_bFourPersonArena[arena_index])
 			CalcELO(client, foe);
