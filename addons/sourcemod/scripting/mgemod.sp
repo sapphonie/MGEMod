@@ -8,7 +8,7 @@
 #include <sdkhooks>
 #include <morecolors> 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.2.2"
+#define PL_VERSION "2.2.3"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
