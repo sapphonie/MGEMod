@@ -584,7 +584,7 @@ public void OnClientPostAdminCheck(int client)
 * -------------------------------------------------------------------------- */
 public void OnClientDisconnect(int client)
 {
-	if (IsValidClient(client) && g_iPlayerArena[client])
+	if (IsValidClient(client, /* ignoreKickQueue */ true) && g_iPlayerArena[client])
 	{
 		RemoveFromQueue(client, true);
 	}
@@ -5170,13 +5170,13 @@ public bool TraceEntityPlayersOnly(int entity, int mask, int client)
  *
  * Checks if a client is valid.
  * -------------------------------------------------------------------------- */
-bool IsValidClient(int iClient)
+bool IsValidClient(int iClient, bool bIgnoreKickQueue = false)
 {
 	if (iClient < 1 || iClient > MaxClients)
 		return false;
 	if (!IsClientConnected(iClient))
 		return false;
-	if (IsClientInKickQueue(iClient))
+	if (!bIgnoreKickQueue && IsClientInKickQueue(iClient))
 		return false;
 	if (IsClientSourceTV(iClient))
 		return false;
