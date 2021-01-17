@@ -8,7 +8,7 @@
 #include <sdkhooks>
 #include <morecolors> 
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.2.3"
+#define PL_VERSION "2.2.4"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
@@ -153,7 +153,7 @@ int
 	g_iELOMenuPage[MAXARENAS + 1];
 	
 //int g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType];
-bool g_tfctArenaAllowedClasses[MAXARENAS + 1][9];
+bool g_tfctArenaAllowedClasses[MAXARENAS + 1][10];
 
 // Player vars
 Handle g_hWelcomeTimer[MAXPLAYERS + 1];
