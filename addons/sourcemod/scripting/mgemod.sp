@@ -6,24 +6,26 @@
 #include <tf2_stocks>
 #include <entity_prop_stocks>
 #include <sdkhooks>
-#include <morecolors> 
+#include <morecolors>
+
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.2.4"
+#define PL_VERSION "2.2.5"
 #define MAX_FILE_LEN 80
 #define MAXARENAS 31
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
-//#define MAPCONFIGFILE "configs/mgemod_spawns.cfg"
 #define STATSCONFIGFILE "configs/mgemod_stats.cfg"
 #define SLOT_ONE 1 //arena slot 1
 #define SLOT_TWO 2 //arena slot 2
 #define SLOT_THREE 3 //arena slot 3
 #define SLOT_FOUR 4 //arena slot 4
+
 //tf teams
 #define TEAM_SPEC 1
 #define TEAM_RED 2
 #define TEAM_BLU 3
 #define NEUTRAL 1
+
 //arena status
 #define AS_IDLE 0
 #define AS_PRECOUNTDOWN 1
@@ -31,20 +33,24 @@
 #define AS_FIGHT 3
 #define AS_AFTERFIGHT 4
 #define AS_REPORTED 5
+
 //sounds
 #define STOCK_SOUND_COUNT 24
-//
-#define DEFAULT_CDTIME 3
-//
+
+//models
 #define MODEL_POINT "models/props_gameplay/cap_point_base.mdl"
 #define MODEL_BRIEFCASE "models/flag/briefcase.mdl"
 #define MODEL_AMMOPACK "models/items/ammopack_small.mdl"
 #define MODEL_LARGE_AMMOPACK "models/items/ammopack_large.mdl"
 
-//#define DEBUG_LOG
+//item indexes
+#define IDI_COWMANGLER 441
+
+//others
+#define DEFAULT_CDTIME 3
 
 // ====[ VARIABLES ]===================================================
-// Handle, String, Float, Bool, NUM, TFCT
+
 bool 
 	g_bNoStats,
 	g_bNoDisplayRating;
@@ -152,7 +158,6 @@ int
 	g_iArenaEarlyLeave[MAXARENAS + 1],
 	g_iELOMenuPage[MAXARENAS + 1];
 	
-//int g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType];
 bool g_tfctArenaAllowedClasses[MAXARENAS + 1][10];
 
 // Player vars
@@ -4759,6 +4764,11 @@ public Action Timer_GiveAmmo(Handle timer, int userid)
 		
 		if (IsValidEntity(weapon))
 			SetEntProp(weapon, Prop_Send, "m_iClip1", g_iPlayerClip[client][SLOT_ONE]);
+	}
+	
+	if (GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex") == IDI_COWMANGLER)
+	{
+		SetEntPropFloat(weapon, Prop_Send, "m_flEnergy", 100.0);
 	}
 	
 	if (g_iPlayerClip[client][SLOT_TWO] != -1)
