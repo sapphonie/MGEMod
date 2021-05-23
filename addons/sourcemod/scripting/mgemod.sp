@@ -1265,7 +1265,7 @@ int StartCountDown(int arena_index)
 
 			g_iArenaCd[arena_index] = g_iArenaCdTime[arena_index] + 1;
 			g_iArenaStatus[arena_index] = AS_PRECOUNTDOWN;
-			CreateTimer(0.0, Timer_CountDown, arena_index, TIMER_FLAG_NO_MAPCHANGE);
+			CreateTimer(0.1, Timer_CountDown, arena_index, TIMER_FLAG_NO_MAPCHANGE);
 			return 1;
 		} else {
 			g_iArenaStatus[arena_index] = AS_IDLE;
@@ -1297,7 +1297,7 @@ int StartCountDown(int arena_index)
 
 			g_iArenaCd[arena_index] = g_iArenaCdTime[arena_index] + 1;
 			g_iArenaStatus[arena_index] = AS_PRECOUNTDOWN;
-			CreateTimer(0.0, Timer_CountDown, arena_index, TIMER_FLAG_NO_MAPCHANGE);
+			CreateTimer(0.1, Timer_CountDown, arena_index, TIMER_FLAG_NO_MAPCHANGE);
 			return 1;
 		}
 		else
@@ -3808,7 +3808,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
 		if (g_bArenaEndif[arena_index])
 		{
 			if (shootsRocketsOrPipes)
-				CreateTimer(0.01, BoostVectors, GetClientUserId(victim));
+				CreateTimer(0.1, BoostVectors, GetClientUserId(victim));
 		}
 
 		if (g_bPlayerTakenDirectHit[victim])
