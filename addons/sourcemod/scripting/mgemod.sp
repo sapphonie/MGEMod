@@ -387,17 +387,6 @@ public void OnPluginStart()
 	}
 }
 
-/* OnGetGameDescription(String:gameDesc[64])
- *
- * Used to change the game description from
- * "Team Fortress 2" to "MGEMod vx.x.x"
- * -------------------------------------------------------------------------- */
-public Action OnGetGameDescription(char gameDesc[64])
-{
-	Format(gameDesc, sizeof(gameDesc), "MGEMod v%s", PL_VERSION);
-	return Plugin_Changed;
-}
-
 /* OnMapStart()
 *
 * When the map starts.
