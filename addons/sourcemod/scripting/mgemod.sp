@@ -526,40 +526,39 @@ public void OnProjectileTouch(int entity, int other)
  * -------------------------------------------------------------------------- */
 public void OnClientPutInServer(int client)
 {
-	if (client)
+	if (IsFakeClient(client))
 	{
-		if (IsFakeClient(client))
+		for (int i = 1; i <= MaxClients; i++)
 		{
-			for (int i = 1; i <= MaxClients; i++)
+			if (g_bPlayerAskedForBot[i])
 			{
-				if (g_bPlayerAskedForBot[i])
-				{
-					int arena_index = g_iPlayerArena[i];
-					DataPack pk;
-					CreateDataTimer(1.5, Timer_AddBotInQueue, pk);
-					pk.WriteCell(GetClientUserId(client));
-					pk.WriteCell(arena_index);
-					g_iPlayerRating[client] = 1551;
-					g_bPlayerAskedForBot[i] = false;
-					break;
-				}
+				int arena_index = g_iPlayerArena[i];
+				DataPack pk;
+				CreateDataTimer(1.5, Timer_AddBotInQueue, pk);
+				pk.WriteCell(GetClientUserId(client));
+				pk.WriteCell(arena_index);
+				g_iPlayerRating[client] = 1551;
+				g_bPlayerAskedForBot[i] = false;
+				break;
 			}
-		} else {
-			CreateTimer(5.0, Timer_ShowAdv, GetClientUserId(client)); /* Show advice to type !add in chat */
-			g_bHitBlip[client] = false;
-			g_bShowHud[client] = true;
-			g_bPlayerRestoringAmmo[client] = false;
-			g_hWelcomeTimer[client] = CreateTimer(15.0, Timer_WelcomePlayer, GetClientUserId(client));
+		}
+	}
+	else
+	{
+		CreateTimer(5.0, Timer_ShowAdv, GetClientUserId(client)); /* Show advice to type !add in chat */
+		g_bHitBlip[client] = false;
+		g_bShowHud[client] = true;
+		g_bPlayerRestoringAmmo[client] = false;
+		g_hWelcomeTimer[client] = CreateTimer(15.0, Timer_WelcomePlayer, GetClientUserId(client));
 
-			if (!g_bNoStats)
-			{
-				char steamid_dirty[31], steamid[64], query[256];
-				GetClientAuthId(client, AuthId_Steam2, steamid_dirty, sizeof(steamid_dirty));
-				db.Escape(steamid_dirty, steamid, sizeof(steamid));
-				strcopy(g_sPlayerSteamID[client], 32, steamid);
-				Format(query, sizeof(query), "SELECT rating, hitblip, wins, losses FROM mgemod_stats WHERE steamid='%s' LIMIT 1", steamid);
-				db.Query(T_SQLQueryOnConnect, query, client);
-			}
+		if (!g_bNoStats)
+		{
+			char steamid_dirty[31], steamid[64], query[256];
+			GetClientAuthId(client, AuthId_Steam2, steamid_dirty, sizeof(steamid_dirty));
+			db.Escape(steamid_dirty, steamid, sizeof(steamid));
+			strcopy(g_sPlayerSteamID[client], 32, steamid);
+			Format(query, sizeof(query), "SELECT rating, hitblip, wins, losses FROM mgemod_stats WHERE steamid='%s' LIMIT 1", steamid);
+			db.Query(T_SQLQueryOnConnect, query, client);
 		}
 	}
 
