@@ -45,12 +45,12 @@
 
 // ====[ VARIABLES ]===================================================
 // Handle, String, Float, Bool, NUM, TFCT
-bool 
+bool
 	g_bNoStats,
 	g_bNoDisplayRating;
 
 // HUD Handles
-Handle 
+Handle
 	hm_HP,
 	hm_Score,
 	hm_TeammateHP,
@@ -380,7 +380,7 @@ public void OnPluginStart()
 		if (IsValidClient(i))
 		{
 			ForcePlayerSuicide(i);
-			OnClientPostAdminCheck(i);
+			OnClientPutInServer(i);
 			g_bCanPlayerSwap[i] = true;
 			g_bCanPlayerGetIntel[i] = true;
 		}
@@ -535,7 +535,7 @@ public void OnProjectileTouch(int entity, int other)
  * Called once a client is authorized and fully in-game.
  * Client-specific variables are initialized here.
  * -------------------------------------------------------------------------- */
-public void OnClientPostAdminCheck(int client)
+public void OnClientPutInServer(int client)
 {
 	if (client)
 	{
