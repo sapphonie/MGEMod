@@ -8,38 +8,55 @@
 #include <sdkhooks>
 #include <morecolors>
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "2.2.4"
-#define MAX_FILE_LEN 80
-#define MAXARENAS 31
+#define PL_VERSION "2.2.5"
+#define MAXARENAS 63
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
-//#define MAPCONFIGFILE "configs/mgemod_spawns.cfg"
-#define STATSCONFIGFILE "configs/mgemod_stats.cfg"
-#define SLOT_ONE 1 //arena slot 1
-#define SLOT_TWO 2 //arena slot 2
-#define SLOT_THREE 3 //arena slot 3
-#define SLOT_FOUR 4 //arena slot 4
-//tf teams
-#define TEAM_SPEC 1
-#define TEAM_RED 2
-#define TEAM_BLU 3
-#define NEUTRAL 1
+#define MAPCONFIGFILE "configs/mgemod_spawns.cfg"
+
+#pragma newdecls required
+
+// arena slots
+enum
+{
+	SLOT_ONE = 1,
+	SLOT_TWO,
+	SLOT_THREE,
+	SLOT_FOUR
+};
+
+// teams
+enum
+{
+	TEAM_NONE = 0,
+	TEAM_SPEC,
+	TEAM_RED,
+	TEAM_BLU
+};
+
 //arena status
-#define AS_IDLE 0
-#define AS_PRECOUNTDOWN 1
-#define AS_COUNTDOWN 2
-#define AS_FIGHT 3
-#define AS_AFTERFIGHT 4
-#define AS_REPORTED 5
+enum
+{
+	AS_IDLE = 0,
+	AS_PRECOUNTDOWN,
+	AS_COUNTDOWN,
+	AS_FIGHT,
+	AS_AFTERFIGHT,
+	AS_REPORTED
+};
+
+// for neutral cap points
+#define NEUTRAL 1
+
 //sounds
 #define STOCK_SOUND_COUNT 24
 //
 #define DEFAULT_CDTIME 3
 //
-#define MODEL_POINT "models/props_gameplay/cap_point_base.mdl"
-#define MODEL_BRIEFCASE "models/flag/briefcase.mdl"
-#define MODEL_AMMOPACK "models/items/ammopack_small.mdl"
-#define MODEL_LARGE_AMMOPACK "models/items/ammopack_large.mdl"
+#define MODEL_POINT 			"models/props_gameplay/cap_point_base.mdl"
+#define MODEL_BRIEFCASE 		"models/flag/briefcase.mdl"
+#define MODEL_AMMOPACK 			"models/items/ammopack_small.mdl"
+#define MODEL_LARGE_AMMOPACK	"models/items/ammopack_large.mdl"
 
 //#define DEBUG_LOG
 
@@ -101,86 +118,106 @@ ConVar
 bool g_tfctClassAllowed[10];
 
 // Arena Vars
-Handle g_tKothTimer[MAXARENAS + 1];
-char g_sArenaName[MAXARENAS + 1][64];
+Handle g_tKothTimer			[MAXARENAS + 1];
+char
+	g_sArenaName			[MAXARENAS + 1][64],
+	// from chillymge
+	g_sArenaOriginalName	[MAXARENAS + 1][64],
+	// Cap point trggier name for KOTH
+	g_sArenaCapTrigger  	[MAXARENAS + 1][64],
+	// Cap point name for KOTH
+	g_sArenaCap 			[MAXARENAS + 1][64];
 
 float
-	g_fArenaSpawnOrigin[MAXARENAS + 1][MAXSPAWNS+1][3],
-	g_fArenaSpawnAngles[MAXARENAS + 1][MAXSPAWNS+1][3],
-	g_fArenaHPRatio[MAXARENAS + 1],
-	g_fArenaMinSpawnDist[MAXARENAS + 1],
-	g_fArenaRespawnTime[MAXARENAS + 1],
-	g_fKothCappedPercent[MAXARENAS + 1],
-	g_fTotalTime[MAXARENAS + 1],
-	g_fCappedTime[MAXARENAS + 1];
+	g_fArenaSpawnOrigin		[MAXARENAS + 1][MAXSPAWNS+1][3],
+	g_fArenaSpawnAngles		[MAXARENAS + 1][MAXSPAWNS+1][3],
+	g_fArenaHPRatio			[MAXARENAS + 1],
+	g_fArenaMinSpawnDist	[MAXARENAS + 1],
+	g_fArenaRespawnTime		[MAXARENAS + 1],
+	g_fKothCappedPercent	[MAXARENAS + 1],
+	g_fTotalTime			[MAXARENAS + 1],
+	g_fCappedTime			[MAXARENAS + 1];
 
 bool
-	g_bArenaAmmomod[MAXARENAS + 1],
-	g_bArenaMidair[MAXARENAS + 1],
-	g_bArenaMGE[MAXARENAS + 1],
-	g_bArenaEndif[MAXARENAS + 1],
-	g_bArenaBBall[MAXARENAS + 1],
-	g_bVisibleHoops[MAXARENAS + 1],
-	g_bArenaInfAmmo[MAXARENAS + 1],
-	g_bFourPersonArena[MAXARENAS + 1],
-	g_bArenaShowHPToPlayers[MAXARENAS + 1],
-	g_bArenaUltiduo[MAXARENAS + 1],
-	g_bArenaKoth[MAXARENAS + 1],
-	g_bPlayerTouchPoint[MAXARENAS + 1][5],
-	g_bArenaTurris[MAXARENAS + 1],
-	g_bOvertimePlayed[MAXARENAS + 1][4],
-	g_bTimerRunning[MAXARENAS + 1];
+	g_bArenaAmmomod			[MAXARENAS + 1],
+	g_bArenaMidair			[MAXARENAS + 1],
+	g_bArenaMGE				[MAXARENAS + 1],
+	g_bArenaEndif			[MAXARENAS + 1],
+	g_bArenaBBall			[MAXARENAS + 1],
+	g_bVisibleHoops			[MAXARENAS + 1],
+	g_bArenaInfAmmo			[MAXARENAS + 1],
+	g_bFourPersonArena		[MAXARENAS + 1],
+	g_bArenaAllowChange 	[MAXARENAS + 1],
+	g_bArenaAllowKoth		[MAXARENAS + 1],
+	g_bArenaKothTeamSpawn   [MAXARENAS + 1],
+	g_bArenaShowHPToPlayers	[MAXARENAS + 1],
+	g_bArenaUltiduo			[MAXARENAS + 1],
+	g_bArenaKoth			[MAXARENAS + 1],
+	g_bPlayerTouchPoint		[MAXARENAS + 1][5],
+	g_bArenaTurris			[MAXARENAS + 1],
+	g_bOvertimePlayed		[MAXARENAS + 1][4],
+	g_bTimerRunning			[MAXARENAS + 1],
+	g_bArenaHasCap          [MAXARENAS + 1],
+	g_bArenaHasCapTrigger   [MAXARENAS + 1],
+	g_bArenaBoostVectors    [MAXARENAS + 1];
 
 int
 	g_iArenaCount,
-	g_iCappingTeam[MAXARENAS + 1],
-	g_iCapturePoint[MAXARENAS + 1],
-	g_iDefaultCapTime[MAXARENAS + 1],
-	g_iKothTimer[MAXARENAS + 1][4],		// [what arena is the cap point in][Team Red or Team Blu Time left]
-	g_iPointState[MAXARENAS + 1],	//1 = neutral, 2 = RED, 3 = BLU
-	g_iArenaScore[MAXARENAS + 1][3],
-	g_iArenaQueue[MAXARENAS + 1][MAXPLAYERS + 1],
-	g_iArenaStatus[MAXARENAS + 1],
-	g_iArenaCd[MAXARENAS + 1],//countdown to round start
-	g_iArenaFraglimit[MAXARENAS + 1],
-	g_iArenaMinRating[MAXARENAS + 1],
-	g_iArenaMaxRating[MAXARENAS + 1],
-	g_iArenaCdTime[MAXARENAS + 1],
-	g_iArenaSpawns[MAXARENAS + 1],
-	g_iBBallHoop[MAXARENAS + 1][3], // [What arena the hoop is in][Hoop 1 or Hoop 2]
-	g_iBBallIntel[MAXARENAS + 1],
-	g_iArenaEarlyLeave[MAXARENAS + 1],
-	g_iELOMenuPage[MAXARENAS + 1];
+	g_iArenaAirshotHeight   [MAXARENAS + 1],
+	g_iCappingTeam			[MAXARENAS + 1],
+	g_iCapturePoint			[MAXARENAS + 1],
+	g_iDefaultCapTime		[MAXARENAS + 1],
+	// 						[what arena is the cap point in][Team Red or Team Blu Time left]
+	g_iKothTimer			[MAXARENAS + 1][4],
+	// 1 = neutral, 2 = RED, 3 = BLU
+	g_iPointState			[MAXARENAS + 1],
+	g_iArenaScore			[MAXARENAS + 1][3],
+	g_iArenaQueue			[MAXARENAS + 1][MAXPLAYERS + 1],
+	g_iArenaStatus			[MAXARENAS + 1],
+	// countdown to round start
+	g_iArenaCd 				[MAXARENAS + 1],
+	g_iArenaFraglimit		[MAXARENAS + 1],
+	g_iArenaMgelimit		[MAXARENAS + 1],
+	g_iArenaCaplimit		[MAXARENAS + 1],
+	g_iArenaMinRating		[MAXARENAS + 1],
+	g_iArenaMaxRating		[MAXARENAS + 1],
+	g_iArenaCdTime			[MAXARENAS + 1],
+	g_iArenaSpawns			[MAXARENAS + 1],
+	// 						[What arena the hoop is in][Hoop 1 or Hoop 2]
+	g_iBBallHoop			[MAXARENAS + 1][3],
+	g_iBBallIntel			[MAXARENAS + 1],
+	g_iArenaEarlyLeave		[MAXARENAS + 1],
+	g_iELOMenuPage			[MAXARENAS + 1];
 
-//int g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType];
+//int g_tfctArenaAllowedClasses[MAXARENAS + 1][TFClassType+1];
 bool g_tfctArenaAllowedClasses[MAXARENAS + 1][10];
 
 // Player vars
-Handle g_hWelcomeTimer[MAXPLAYERS + 1];
-char g_sPlayerSteamID[MAXPLAYERS + 1][32]; //saving steamid
+Handle g_hWelcomeTimer		[MAXPLAYERS + 1];
+char g_sPlayerSteamID		[MAXPLAYERS + 1][32]; //saving steamid
 
 bool
-	g_bPlayerTakenDirectHit[MAXPLAYERS + 1],//player was hit directly
-	g_bPlayerRestoringAmmo[MAXPLAYERS + 1],//player is awaiting full ammo restore
-	g_bPlayerHasIntel[MAXPLAYERS + 1],
-	g_bHitBlip[MAXPLAYERS + 1],
-	g_bShowHud[MAXPLAYERS + 1] = true,
-	g_iPlayerWaiting[MAXPLAYERS + 1],
-	g_bCanPlayerSwap[MAXPLAYERS + 1],
-	g_bCanPlayerGetIntel[MAXPLAYERS + 1];
+	g_bPlayerTakenDirectHit	[MAXPLAYERS + 1],//player was hit directly
+	g_bPlayerRestoringAmmo	[MAXPLAYERS + 1],//player is awaiting full ammo restore
+	g_bPlayerHasIntel		[MAXPLAYERS + 1],
+	g_bHitBlip				[MAXPLAYERS + 1],
+	g_bShowHud				[MAXPLAYERS + 1] = true,
+	g_iPlayerWaiting		[MAXPLAYERS + 1],
+	g_bCanPlayerSwap		[MAXPLAYERS + 1],
+	g_bCanPlayerGetIntel	[MAXPLAYERS + 1];
 
 int
-	g_iPlayerArena[MAXPLAYERS + 1],
-	g_iPlayerSlot[MAXPLAYERS + 1],
-	g_iPlayerHP[MAXPLAYERS + 1], //true HP of players
-	g_iPlayerSpecTarget[MAXPLAYERS + 1],
-	g_iPlayerMaxHP[MAXPLAYERS + 1],
-	g_iClientParticle[MAXPLAYERS + 1],
-	g_iPlayerClip[MAXPLAYERS + 1][3],
-	g_iPlayerWins[MAXPLAYERS + 1],
-	g_iPlayerLosses[MAXPLAYERS + 1],
-	g_iPlayerRating[MAXPLAYERS + 1],
-	g_iPlayerHandicap[MAXPLAYERS + 1];
+	g_iPlayerArena			[MAXPLAYERS + 1],
+	g_iPlayerSlot			[MAXPLAYERS + 1],
+	g_iPlayerHP				[MAXPLAYERS + 1], //true HP of players
+	g_iPlayerSpecTarget		[MAXPLAYERS + 1],
+	g_iPlayerMaxHP			[MAXPLAYERS + 1],
+	g_iClientParticle		[MAXPLAYERS + 1],
+	g_iPlayerClip			[MAXPLAYERS + 1][3],
+	g_iPlayerWins			[MAXPLAYERS + 1],
+	g_iPlayerLosses			[MAXPLAYERS + 1],
+	g_iPlayerRating			[MAXPLAYERS + 1],
+	g_iPlayerHandicap		[MAXPLAYERS + 1];
 
 TFClassType g_tfctPlayerClass[MAXPLAYERS + 1];
 
@@ -234,11 +271,11 @@ static const char stockSounds[][] =  // Sounds that do not need to be downloaded
 
 public Plugin myinfo =
 {
-	name = "MGEMod",
-	author = "Lange & Cprice; based on kAmmomod by Krolus - maintained by sappho.io",
-	description = "Duel mod with realistic game situations.",
-	version = PL_VERSION,
-	url = "https://github.com/sapphonie/MGEMod, https://sappho.io"
+	name 		= "MGE",
+	author 		= "Originally by Lange & Cprice; based on kAmmomod by Krolus - maintained by sappho.io, PepperKick, and others",
+	description = "Duel mod for TF2 with realistic game situations.",
+	version 	=  PL_VERSION,
+	url 		= "https://github.com/sapphonie/MGEMod"
 }
 /*
 ** ------------------------------------------------------------------
@@ -262,7 +299,7 @@ public void OnPluginStart()
 	LoadTranslations("mgemod.phrases");
 
 	//ConVars
-	CreateConVar("sm_mgemod_version", PL_VERSION, "MGEMod version", FCVAR_SPONLY | FCVAR_REPLICATED | FCVAR_NOTIFY);
+	CreateConVar("sm_mgemod_version", PL_VERSION, "MGEMod version", FCVAR_SPONLY | FCVAR_NOTIFY);
 	gcvar_fragLimit = CreateConVar("mgemod_fraglimit", "3", "Default frag limit in duel", FCVAR_NONE, true, 1.0);
 	gcvar_allowedClasses = CreateConVar("mgemod_allowed_classes", "soldier demoman scout", "Classes that players allowed to choose by default");
 	gcvar_blockFallDamage = CreateConVar("mgemod_blockdmg_fall", "0", "Block falldamage? (0 = Disabled)", FCVAR_NONE, true, 0.0, true, 1.0);
@@ -279,7 +316,7 @@ public void OnPluginStart()
 	gcvar_midairHP = CreateConVar("mgemod_midair_hp", "5", "", FCVAR_NONE, true, 1.0);
 	gcvar_noDisplayRating = CreateConVar("mgemod_hide_rating", "0", "Hide the in-game display of rating points. They will still be tracked in the database.");
 	gcvar_reconnectInterval = CreateConVar("mgemod_reconnect_interval", "5", "How long (in minutes) to wait between database reconnection attempts.");
-	gcvar_spawnFile = CreateConVar("mgemod_spawnfile", "configs/mgemod_spawns.cfg", "Spawn file");
+	gcvar_spawnFile = CreateConVar("mgemod_spawnfile", MAPCONFIGFILE, "Spawn file");
 
 	// Populate global variables with their corresponding convar values.
 	g_iDefaultFragLimit = gcvar_fragLimit.IntValue;
@@ -342,7 +379,7 @@ public void OnPluginStart()
 	RegConsoleCmd("swap", Command_Swap, "Ask your teammate to swap classes with you in ultiduo");
 	RegConsoleCmd("remove", Command_Remove, "Remove from current arena.");
 	RegConsoleCmd("top5", Command_Top5, "Display the Top 5 players.");
-	RegConsoleCmd("hitblip", Command_ToogleHitblip, "Toggle hitblip.");
+	RegConsoleCmd("hitblip", Command_ToogleHitblip, "Toggle hitblip!");
 	RegConsoleCmd("hud", Command_ToggleHud, "Toggle text hud.");
 	RegConsoleCmd("hidehud", Command_ToggleHud, "Toggle text hud. (alias)");
 	RegConsoleCmd("rank", Command_Rank, "Usage: rank <player name>. Show that player's rank.");
@@ -353,19 +390,26 @@ public void OnPluginStart()
 	RegConsoleCmd("spec_next", Command_Spec);
 	RegConsoleCmd("spec_prev", Command_Spec);
 	RegConsoleCmd("joinclass", Command_JoinClass);
+
 	RegAdminCmd("loc", Command_Loc, ADMFLAG_BAN, "Shows client origin and angle vectors");
 	RegAdminCmd("botme", Command_AddBot, ADMFLAG_BAN, "Add bot to your arena");
 	RegAdminCmd("conntest", Command_ConnectionTest, ADMFLAG_BAN, "MySQL connection test");
 
+	// from chillymge
+	RegConsoleCmd("1v1", Command_OneVsOne, "Change arena to 1v1");
+	RegConsoleCmd("2v2", Command_TwoVsTwo, "Change arena to 2v2");
+	RegAdminCmd("koth", Command_Koth, ADMFLAG_BAN, "Change arena to KOTH Mode");
+	RegAdminCmd("mge", Command_Mge, ADMFLAG_BAN, "Change arena to MGE Mode");
+
 	AddCommandListener(Command_DropItem, "dropitem");
 
 	// Create the HUD text handles for later use.
-	hm_HP = CreateHudSynchronizer();
-	hm_Score = CreateHudSynchronizer();
+	hm_HP 			= CreateHudSynchronizer();
+	hm_Score 		= CreateHudSynchronizer();
 	hm_KothTimerBLU = CreateHudSynchronizer();
 	hm_KothTimerRED = CreateHudSynchronizer();
-	hm_KothCap = CreateHudSynchronizer();
-	hm_TeammateHP = CreateHudSynchronizer();
+	hm_KothCap 		= CreateHudSynchronizer();
+	hm_TeammateHP 	= CreateHudSynchronizer();
 
 	// Set up the log file for debug logging.
 	BuildPath(Path_SM, g_sLogFile, sizeof(g_sLogFile), "logs/mgemod.log");
@@ -380,7 +424,7 @@ public void OnPluginStart()
 		if (IsValidClient(i))
 		{
 			ForcePlayerSuicide(i);
-			OnClientPutInServer(i);
+			OnClientPostAdminCheck(i);
 			g_bCanPlayerSwap[i] = true;
 			g_bCanPlayerGetIntel[i] = true;
 		}
@@ -405,7 +449,6 @@ public void OnMapStart()
 	PrecacheModel(MODEL_POINT, true);
 
 	g_bNoStats = gcvar_stats.BoolValue ? false : true; /* Reset this variable, since it is forced to false during Event_WinPanel */
-
 
 	// Spawns
 	int isMapAm = LoadSpawnPoints();
@@ -521,10 +564,10 @@ public void OnProjectileTouch(int entity, int other)
 
 /* OnClientPostAdminCheck(client)
  *
- * Called once a client is authorized and fully in-game.
+ * Called once a client is fully in-game, and authorized with Steam.
  * Client-specific variables are initialized here.
  * -------------------------------------------------------------------------- */
-public void OnClientPutInServer(int client)
+public void OnClientPostAdminCheck(int client)
 {
 	if (IsFakeClient(client))
 	{
@@ -545,7 +588,7 @@ public void OnClientPutInServer(int client)
 	}
 	else
 	{
-		// ChangeClientTeam(client, TEAM_SPEC);
+		ChangeClientTeam(client, TEAM_SPEC);
 		CreateTimer(5.0, Timer_ShowAdv, GetClientUserId(client)); /* Show advice to type !add in chat */
 		g_bHitBlip[client] = false;
 		g_bShowHud[client] = true;
@@ -573,7 +616,8 @@ public void OnClientPutInServer(int client)
 * -------------------------------------------------------------------------- */
 public void OnClientDisconnect(int client)
 {
-	if (IsValidClient(client, /* ignoreKickQueue */ true) && g_iPlayerArena[client])
+	// We ignore the kick queue check for this function only so that clients that get kicked still get their elo calculated
+	if (IsValidClient(client, true) && g_iPlayerArena[client])
 	{
 		RemoveFromQueue(client, true);
 	}
@@ -700,9 +744,9 @@ public void OnClientDisconnect(int client)
  *
  * This code is run on every frame. Can be very hardware intensive.
  * -------------------------------------------------------------------------- */
+// note from the future - "this can be hardware intensive" and then its repeated code like 4 times? lol ok
 public void OnGameFrame()
 {
-
 	int arena_index;
 
 	for (int client = 1; client <= MaxClients; client++)
@@ -932,12 +976,7 @@ public void OnGameFrame()
 			else
 				g_fCappedTime[arena_index2]--;
 		}
-
-
 	}
-
-
-
 }
 
 /* OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
@@ -1307,32 +1346,48 @@ int StartCountDown(int arena_index)
 			return 0;
 		}
 	}
-
-
 }
 
 // ====[ HUD ]====================================================
 void ShowSpecHudToArena(int arena_index)
 {
 	if (!arena_index)
+	{
 		return;
-
+	}
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) == TEAM_SPEC && g_iPlayerSpecTarget[i] > 0 && g_iPlayerArena[g_iPlayerSpecTarget[i]] == arena_index)
+		if
+		(
+			IsValidClient(i)
+			&& GetClientTeam(i) == TEAM_SPEC
+			&& g_iPlayerSpecTarget[i] > 0
+			&& g_iPlayerArena[g_iPlayerSpecTarget[i]] == arena_index
+		)
+		{
 			ShowSpecHudToClient(i);
+		}
 	}
 }
 
 void ShowCountdownToSpec(int arena_index, char[] text)
 {
 	if (!arena_index)
+	{
 		return;
+	}
 
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && GetClientTeam(i) == TEAM_SPEC && g_iPlayerArena[g_iPlayerSpecTarget[i]] == arena_index)
+		if
+		(
+			IsValidClient(i)
+			&& GetClientTeam(i) == TEAM_SPEC
+			&& g_iPlayerArena[g_iPlayerSpecTarget[i]] == arena_index
+		)
+		{
 			PrintCenterText(i, text);
+		}
 	}
 }
 
@@ -1663,12 +1718,16 @@ void ShowSpecHudToClient(int client)
 void ShowHudToAll()
 {
 	for (int i = 1; i <= g_iArenaCount; i++)
-	ShowSpecHudToArena(i);
+	{
+		ShowSpecHudToArena(i);
+	}
 
 	for (int i = 1; i <= MAXPLAYERS; i++)
 	{
 		if (g_iPlayerArena[i])
+		{
 			ShowPlayerHud(i);
+		}
 	}
 }
 
@@ -1700,7 +1759,7 @@ void RemoveFromQueue(int client, bool calcstats = false, bool specfix = false)
 	if (IsValidClient(client) && GetClientTeam(client) != TEAM_SPEC)
 	{
 		ForcePlayerSuicide(client);
-		ChangeClientTeam(client, 1);
+		ChangeClientTeam(client, TEAM_SPEC);
 
 		if (specfix)
 			CreateTimer(0.1, Timer_SpecFix, GetClientUserId(client));
@@ -2171,26 +2230,28 @@ bool LoadSpawnPoints()
 	int i;
 	g_iArenaCount = 0;
 
-	for (i = 0; i <= MAXARENAS; i++)
-	g_iArenaSpawns[i] = 0;
-
-	if (kv.ImportFromFile(txtfile))
+	for (int j = 0; j <= MAXARENAS; j++)
 	{
-		if (kv.GotoFirstSubKey())
+		g_iArenaSpawns[j] = 0;
+	}
+
+	if (FileToKeyValues(kv, txtfile))
+	{
+		if (KvGotoFirstSubKey(kv))
 		{
 			do
 			{
-				kv.GetSectionName(kvmap, sizeof(kvmap));
+				KvGetSectionName(kv, kvmap, 64);
 				if (StrEqual(g_sMapName, kvmap, false))
 				{
-					if (kv.GotoFirstSubKey())
+					if (KvGotoFirstSubKey(kv))
 					{
 						do
 						{
 							g_iArenaCount++;
-							kv.GetSectionName(g_sArenaName[g_iArenaCount], 64);
+							KvGetSectionName(kv, g_sArenaOriginalName[g_iArenaCount], 64);
 							int id;
-							if (kv.GetNameSymbol("1", id))
+							if (KvGetNameSymbol(kv, "1", id))
 							{
 								char intstr[4];
 								char intstr2[4];
@@ -2198,21 +2259,21 @@ bool LoadSpawnPoints()
 								{
 									g_iArenaSpawns[g_iArenaCount]++;
 									IntToString(g_iArenaSpawns[g_iArenaCount], intstr, sizeof(intstr));
-									IntToString(g_iArenaSpawns[g_iArenaCount] + 1, intstr2, sizeof(intstr2));
-									kv.GetString(intstr, spawn, sizeof(spawn));
+									IntToString(g_iArenaSpawns[g_iArenaCount]+1, intstr2, sizeof(intstr2));
+									KvGetString(kv, intstr, spawn, sizeof(spawn));
 									count = ExplodeString(spawn, " ", spawnCo, 6, 16);
-									if (count == 6)
+									if (count==6)
 									{
-										for (i = 0; i < 3; i++)
+										for (i=0; i<3; i++)
 										{
 											g_fArenaSpawnOrigin[g_iArenaCount][g_iArenaSpawns[g_iArenaCount]][i] = StringToFloat(spawnCo[i]);
 										}
-										for (i = 3; i < 6; i++)
+										for (i=3; i<6; i++)
 										{
-											g_fArenaSpawnAngles[g_iArenaCount][g_iArenaSpawns[g_iArenaCount]][i - 3] = StringToFloat(spawnCo[i]);
+											g_fArenaSpawnAngles[g_iArenaCount][g_iArenaSpawns[g_iArenaCount]][i-3] = StringToFloat(spawnCo[i]);
 										}
-									} else if (count == 4) {
-										for (i = 0; i < 3; i++)
+									} else if(count==4) {
+										for (i=0; i<3; i++)
 										{
 											g_fArenaSpawnOrigin[g_iArenaCount][g_iArenaSpawns[g_iArenaCount]][i] = StringToFloat(spawnCo[i]);
 										}
@@ -2220,55 +2281,75 @@ bool LoadSpawnPoints()
 										g_fArenaSpawnAngles[g_iArenaCount][g_iArenaSpawns[g_iArenaCount]][1] = StringToFloat(spawnCo[3]);
 										g_fArenaSpawnAngles[g_iArenaCount][g_iArenaSpawns[g_iArenaCount]][2] = 0.0;
 									} else {
-										SetFailState("Error in cfg file. Wrong number of parametrs (%d) on spawn <%i> in arena <%s>", count, g_iArenaSpawns[g_iArenaCount], g_sArenaName[g_iArenaCount]);
+										SetFailState("Error in cfg file. Wrong number of parametrs (%d) on spawn <%i> in arena <%s>",count,g_iArenaSpawns[g_iArenaCount],g_sArenaOriginalName[g_iArenaCount]);
 									}
-								} while (kv.GetNameSymbol(intstr2, id));
-								LogMessage("Loaded %d spawns on arena %s.", g_iArenaSpawns[g_iArenaCount], g_sArenaName[g_iArenaCount]);
+								} while (KvGetNameSymbol(kv, intstr2, id));
+								LogMessage("Loaded %d spawns on arena %s.",g_iArenaSpawns[g_iArenaCount], g_sArenaOriginalName[g_iArenaCount]);
 							} else {
-								LogError("Could not load spawns on arena %s.", g_sArenaName[g_iArenaCount]);
+								LogError("Could not load spawns on arena %s.", g_sArenaOriginalName[g_iArenaCount]);
+							}
+
+							if (KvGetNameSymbol(kv, "cap", id)) {
+								KvGetString(kv, "cap",  g_sArenaCap[g_iArenaCount], 64);
+								g_bArenaHasCap[g_iArenaCount] = true;
+
+								LogMessage("Found cap point on arena %s.", g_sArenaOriginalName[g_iArenaCount]);
+							} else {
+								g_bArenaHasCap[g_iArenaCount] = false;
+							}
+
+							if (KvGetNameSymbol(kv, "cap_trigger", id)) {
+								KvGetString(kv, "cap_trigger",  g_sArenaCapTrigger[g_iArenaCount], 64);
+								g_bArenaHasCapTrigger[g_iArenaCount] = true;
 							}
 
 							//optional parametrs
-							g_iArenaFraglimit[g_iArenaCount] = kv.GetNum("fraglimit", g_iDefaultFragLimit);
-							g_iArenaMinRating[g_iArenaCount] = kv.GetNum("minrating", -1);
-							g_iArenaMaxRating[g_iArenaCount] = kv.GetNum("maxrating", -1);
-							g_bArenaMidair[g_iArenaCount] = kv.GetNum("midair", 0) ? true : false;
-							g_iArenaCdTime[g_iArenaCount] = kv.GetNum("cdtime", DEFAULT_CDTIME);
-							g_bArenaMGE[g_iArenaCount] = kv.GetNum("mge", 0) ? true : false;
-							g_fArenaHPRatio[g_iArenaCount] = kv.GetFloat("hpratio", 1.5);
-							g_bArenaEndif[g_iArenaCount] = kv.GetNum("endif", 0) ? true : false;
-							g_bArenaBBall[g_iArenaCount] = kv.GetNum("bball", 0) ? true : false;
-							g_bVisibleHoops[g_iArenaCount] = kv.GetNum("vishoop", 0) ? true : false;
-							g_iArenaEarlyLeave[g_iArenaCount] = kv.GetNum("earlyleave", 0);
-							g_bArenaInfAmmo[g_iArenaCount] = kv.GetNum("infammo", 1) ? true : false;
-							g_bArenaShowHPToPlayers[g_iArenaCount] = kv.GetNum("showhp", 1) ? true : false;
-							g_fArenaMinSpawnDist[g_iArenaCount] = kv.GetFloat("mindist", 100.0);
-							g_bFourPersonArena[g_iArenaCount] = kv.GetNum("4player", 0) ? true : false;
-							g_fArenaRespawnTime[g_iArenaCount] = kv.GetFloat("respawntime", 0.1);
-							g_bArenaAmmomod[g_iArenaCount] = kv.GetNum("ammomod", 0) ? true : false;
-							g_bArenaUltiduo[g_iArenaCount] = kv.GetNum("ultiduo", 0) ? true : false;
-							g_bArenaKoth[g_iArenaCount] = kv.GetNum("koth", 0) ? true : false;
-							g_bArenaTurris[g_iArenaCount] = kv.GetNum("turris", 0) ? true : false;
-							g_iDefaultCapTime[g_iArenaCount] = kv.GetNum("Timer", 180);
-
+							g_iArenaMgelimit[g_iArenaCount] = KvGetNum(kv, "fraglimit", g_iDefaultFragLimit);
+							g_iArenaCaplimit[g_iArenaCount] = KvGetNum(kv, "caplimit", g_iDefaultFragLimit);
+							g_iArenaMinRating[g_iArenaCount] = KvGetNum(kv, "minrating", -1);
+							g_iArenaMaxRating[g_iArenaCount] = KvGetNum(kv, "maxrating", -1);
+							g_bArenaMidair[g_iArenaCount] = KvGetNum(kv, "midair", 0) ? true : false ;
+							g_iArenaCdTime[g_iArenaCount] = KvGetNum(kv, "cdtime", DEFAULT_CDTIME);
+							g_bArenaMGE[g_iArenaCount] = KvGetNum(kv, "mge", 0) ? true : false ;
+							g_fArenaHPRatio[g_iArenaCount] = KvGetFloat(kv, "hpratio", 1.5);
+							g_bArenaEndif[g_iArenaCount] = KvGetNum(kv, "endif", 0) ? true : false ;
+							g_iArenaAirshotHeight[g_iArenaCount] = KvGetNum(kv, "airshotheight", 250);
+							g_bArenaBoostVectors[g_iArenaCount] = KvGetNum(kv, "boostvectors", 0) ? true : false ;
+							g_bArenaBBall[g_iArenaCount] = KvGetNum(kv, "bball", 0) ? true : false ;
+							g_bVisibleHoops[g_iArenaCount] = KvGetNum(kv, "vishoop", 0) ? true : false ;
+							g_iArenaEarlyLeave[g_iArenaCount] = KvGetNum(kv, "earlyleave", 0);
+							g_bArenaInfAmmo[g_iArenaCount] = KvGetNum(kv, "infammo", 1) ? true : false ;
+							g_bArenaShowHPToPlayers[g_iArenaCount] = KvGetNum(kv, "showhp", 1) ? true : false ;
+							g_fArenaMinSpawnDist[g_iArenaCount] = KvGetFloat(kv, "mindist", 100.0);
+							g_bFourPersonArena[g_iArenaCount] = KvGetNum(kv, "4player", 0) ? true : false;
+							g_bArenaAllowChange[g_iArenaCount] = KvGetNum(kv, "allowchange", 0) ? true : false;
+							g_bArenaAllowKoth[g_iArenaCount] = KvGetNum(kv, "allowkoth", 0) ? true : false;
+							g_bArenaKothTeamSpawn[g_iArenaCount] = KvGetNum(kv, "kothteamspawn", 0) ? true : false;
+							g_fArenaRespawnTime[g_iArenaCount] = KvGetFloat(kv, "respawntime", 0.1);
+							g_bArenaAmmomod[g_iArenaCount] = KvGetNum(kv, "ammomod", 0) ? true : false;
+							g_bArenaUltiduo[g_iArenaCount] = KvGetNum(kv, "ultiduo", 0) ? true : false;
+							g_bArenaKoth[g_iArenaCount] = KvGetNum(kv, "koth", 0) ? true : false;
+							g_bArenaTurris[g_iArenaCount] = KvGetNum(kv, "turris", 0) ? true : false;
+							g_iDefaultCapTime[g_iArenaCount] = KvGetNum(kv, "timer", 180);
 							//parsing allowed classes for current arena
 							char sAllowedClasses[128];
-							kv.GetString("classes", sAllowedClasses, sizeof(sAllowedClasses));
-							LogMessage("%s classes: <%s>", g_sArenaName[g_iArenaCount], sAllowedClasses);
-							ParseAllowedClasses(sAllowedClasses, g_tfctArenaAllowedClasses[g_iArenaCount]);
-
-						} while (kv.GotoNextKey());
+							KvGetString(kv, "classes", sAllowedClasses, sizeof(sAllowedClasses));
+							LogMessage("%s classes: <%s>", g_sArenaOriginalName[g_iArenaCount], sAllowedClasses);
+							ParseAllowedClasses(sAllowedClasses,g_tfctArenaAllowedClasses[g_iArenaCount]);
+							g_iArenaFraglimit[g_iArenaCount] = g_iArenaMgelimit[g_iArenaCount];
+							UpdateArenaName(g_iArenaCount);
+						} while (KvGotoNextKey(kv));
 					}
 					break;
 				}
-			} while (kv.GotoNextKey());
+			} while (KvGotoNextKey(kv));
 			if (g_iArenaCount)
 			{
-				LogMessage("Loaded %d arenas. MGEMod enabled.", g_iArenaCount);
-				delete kv;
+				LogMessage("Loaded %d arenas. MGEMod enabled.",g_iArenaCount);
+				CloseHandle(kv);
 				return true;
 			} else {
-				delete kv;
+				CloseHandle(kv);
 				return false;
 			}
 		} else {
@@ -2285,7 +2366,6 @@ int ResetPlayer(int client)
 {
 	int arena_index = g_iPlayerArena[client];
 	int player_slot = g_iPlayerSlot[client];
-
 
 	if (!arena_index || !player_slot)
 	{
@@ -2513,7 +2593,7 @@ void RemoveClientParticle(int client)
 // ====[ SWAP MENU ]=====================================================
 void ShowSwapMenu(int client)
 {
-	if (client <= 0)
+	if (!IsValidClient(client))
 		return;
 
 	char title[128];
@@ -2531,7 +2611,7 @@ void ShowSwapMenu(int client)
 // ====[ MAIN MENU ]====================================================
 void ShowMainMenu(int client, bool listplayers = true)
 {
-	if (client <= 0)
+	if (!IsValidClient(client))
 		return;
 
 	char title[128];
@@ -2709,7 +2789,7 @@ public int SwapMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 
 void ShowTop5Menu(int client, char[][] name, int[] rating)
 {
-	if (client <= 0)
+	if (!IsValidClient(client))
 		return;
 
 	char title[128];
@@ -3013,10 +3093,12 @@ public Action Command_JoinClass(int client, int args)
 		GetCmdArg(1, s_class, sizeof(s_class));
 		TFClassType new_class = TF2_GetClass(s_class);
 
+		/*
 		// Work-around to enable heavy. See https://bugs.alliedmods.net/show_bug.cgi?id=5243
-		if (!new_class && StrEqual(s_class, "heavyweapons") && g_tfctArenaAllowedClasses[arena_index][6])
-			new_class = TFClass_Heavy;
-
+		//if (!new_class && StrEqual(s_class, "heavyweapons") && g_tfctArenaAllowedClasses[arena_index][6])
+		//	new_class = TFClass_Heavy;
+		*/
+		// ^ bro this bug was fixed in fucking 2013
 		if (new_class == g_tfctPlayerClass[client])
 			return Plugin_Handled; // no need to do anything, as nothing has changed
 
@@ -3187,7 +3269,6 @@ public Action Command_JoinClass(int client, int args)
 					g_iPlayerHandicap[client] = 0;
 					ShowSpecHudToArena(g_iPlayerArena[client]);
 					return Plugin_Continue;
-
 				}
 				else
 				{
@@ -3201,6 +3282,99 @@ public Action Command_JoinClass(int client, int args)
 				ChangeClientTeam(client, TEAM_SPEC);
 			}
 		}
+	}
+
+	return Plugin_Handled;
+}
+
+public Action Command_OneVsOne(int client, int args)
+{
+	if (!IsValidClient(client))
+		return Plugin_Continue;
+
+	int arena_index = g_iPlayerArena[client];
+	//new player_slot = g_iPlayerSlot[client];
+
+	if (!arena_index) {
+		PrintToChat(client, "You are not in an arena!");
+		return Plugin_Continue;
+	}
+
+	if (!g_bFourPersonArena[arena_index]) {
+		PrintToChat(client, "This arena is already in 1v1 mode!");
+		return Plugin_Continue;
+	}
+
+	if (!g_bArenaAllowChange[arena_index]) {
+		PrintToChat(client, "Cannot change to 1v1 in this arena!");
+		return Plugin_Continue;
+	}
+
+	if (g_iArenaStatus[arena_index] != AS_IDLE) {
+		PrintToChat(client, "Cannot switch to 1v1 now!");
+		return Plugin_Continue;
+	}
+
+	if(g_iArenaQueue[arena_index][SLOT_THREE] || g_iArenaQueue[arena_index][SLOT_FOUR]) {
+		PrintToChat(client, "There are more then 2 players in this arena");
+		return Plugin_Continue;
+	}
+
+	g_bFourPersonArena[arena_index] = false;
+	g_iArenaCdTime[arena_index] = DEFAULT_CDTIME;
+	CreateTimer(1.5, Timer_StartDuel, arena_index);
+	UpdateArenaName(arena_index);
+
+	if(g_iArenaQueue[arena_index][SLOT_ONE]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_ONE], "Changed current arena to 1v1 arena!");
+	}
+
+	if(g_iArenaQueue[arena_index][SLOT_TWO]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_TWO], "Changed current arena to 1v1 arena!");
+	}
+
+	return Plugin_Handled;
+}
+
+public Action Command_TwoVsTwo(int client, int args)
+{
+	if (!IsValidClient(client))
+		return Plugin_Continue;
+
+	int arena_index = g_iPlayerArena[client];
+	//new player_slot = g_iPlayerSlot[client];
+
+	if (!arena_index) {
+		PrintToChat(client, "You are not in an arena!");
+		return Plugin_Continue;
+	}
+
+	if(g_bFourPersonArena[arena_index]) {
+		PrintToChat(client, "This arena is already in 2v2 mode!");
+		return Plugin_Continue;
+	}
+
+	if (!g_bArenaAllowChange[arena_index]) {
+		PrintToChat(client, "Cannot change to 2v2 in this arena!");
+		return Plugin_Continue;
+	}
+
+	if (g_iArenaStatus[arena_index] != AS_IDLE) {
+		PrintToChat(client, "Cannot switch to 2v2 now!");
+		return Plugin_Continue;
+	}
+
+	g_bFourPersonArena[arena_index] = true;
+	g_iArenaCdTime[arena_index] = 0;
+	CreateTimer(1.5, Timer_StartDuel, arena_index);
+	UpdateArenaName(arena_index);
+
+	if(g_iArenaQueue[arena_index][SLOT_ONE]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_ONE], "Changed current arena to 2v2 arena!");
+	}
+
+	if(g_iArenaQueue[arena_index][SLOT_TWO]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_TWO], "Changed current arena to 2v2 arena!");
 	}
 
 	return Plugin_Handled;
@@ -3249,16 +3423,9 @@ public Action Command_ToogleHitblip(int client, int args)
 	if (!IsValidClient(client))
 		return Plugin_Continue;
 
-	g_bHitBlip[client] = !g_bHitBlip[client];
+	PrintToChat(client, "This doesn't do anything and hasn't for a long time. Have a hitsound instead!");
 
-	if (!g_bNoStats)
-	{
-		char query[256];
-		Format(query, sizeof(query), "UPDATE mgemod_stats SET hitblip=%i WHERE steamid='%s'", g_bHitBlip[client] ? 1:0, g_sPlayerSteamID[client]);
-		db.Query(SQLErrorCheckCallback, query);
-	}
-
-	PrintToChat(client, "\x01Hitblip is \x04%sabled\x01.", g_bHitBlip[client] ? "en":"dis");
+	ClientCommand(client, "playgamesound \"ui/hitsound.wav\"");
 	return Plugin_Handled;
 }
 
@@ -3287,7 +3454,9 @@ public Action Command_ToggleHud(int client, int args)
 			ShowPlayerHud(client);
 		else
 			ShowSpecHudToClient(client);
-	} else {
+	}
+	else
+	{
 		HideHud(client);
 	}
 
@@ -4696,22 +4865,29 @@ public Action Timer_ResetPlayer(Handle timer, int userid)
 public Action Timer_ChangePlayerSpec(Handle timer, any player)
 {
 	if (IsValidClient(player) && !IsPlayerAlive(player))
+	{
 		ChangeClientTeam(player, TEAM_SPEC);
+	}
 }
 
 public Action Timer_ChangeSpecTarget(Handle timer, int userid)
 {
 	int client = GetClientOfUserId(userid);
 
-	if (!client || !IsValidClient(client))
+	if (!IsValidClient(client))
+	{
 		return Plugin_Stop;
+	}
 
 	int target = GetEntPropEnt(client, Prop_Send, "m_hObserverTarget");
 
-	if (IsValidClient(target) && g_iPlayerArena[target]) {
+	if (IsValidClient(target) && g_iPlayerArena[target])
+	{
 		g_iPlayerSpecTarget[client] = target;
 		ShowSpecHudToClient(client);
-	} else {
+	}
+	else
+	{
 		HideHud(client);
 		g_iPlayerSpecTarget[client] = 0;
 	}
@@ -5161,15 +5337,25 @@ public bool TraceEntityPlayersOnly(int entity, int mask, int client)
  * -------------------------------------------------------------------------- */
 bool IsValidClient(int iClient, bool bIgnoreKickQueue = false)
 {
-	if (iClient < 1 || iClient > MaxClients)
+	if
+	(
+		// "client" is 0 (console) or lower - nope!
+			0 >= iClient
+		// "client" is higher than MaxClients - nope!
+		|| MaxClients < iClient
+		// "client" isnt in game aka their entity hasn't been created - nope!
+		|| !IsClientInGame(iClient)
+		// "client" is in the kick queue - nope!
+		|| (IsClientInKickQueue(iClient) && !bIgnoreKickQueue)
+		// "client" is sourcetv - nope!
+		|| IsClientSourceTV(iClient)
+		// "client" is the replay bot - nope!
+		|| IsClientReplay(iClient)
+	)
+	{
 		return false;
-	if (!IsClientConnected(iClient))
-		return false;
-	if (!bIgnoreKickQueue && IsClientInKickQueue(iClient))
-		return false;
-	if (IsClientSourceTV(iClient))
-		return false;
-	return IsClientInGame(iClient);
+	}
+	return true;
 }
 
 /* ShootsRocketsOrPipes()
@@ -5583,4 +5769,103 @@ public void PlayEndgameSoundsToArena(any arena_index, any winner_team)
 				EmitSoundToClient(blu_2, SoundFileBlu);
 		}
 	}
+}
+
+public Action Command_Koth(int client, int args)
+{
+	if (!IsValidClient(client))
+		return Plugin_Continue;
+
+	int arena_index = g_iPlayerArena[client];
+	//new player_slot = g_iPlayerSlot[client];
+
+	if (!arena_index) {
+		PrintToChat(client, "You are not in an arena!");
+		return Plugin_Continue;
+	}
+
+	if (g_bArenaKoth[arena_index]) {
+		PrintToChat(client, "This arena is already in KOTH mode!");
+		return Plugin_Continue;
+	}
+
+	if (!g_bArenaAllowKoth[arena_index]) {
+		PrintToChat(client, "Cannot change to KOTH mode in this arena!");
+		return Plugin_Continue;
+	}
+
+	if (g_iArenaStatus[arena_index] != AS_IDLE) {
+		PrintToChat(client, "Cannot switch to KOTH now!");
+		return Plugin_Continue;
+	}
+
+	g_bArenaKoth[arena_index] = true;
+	g_bArenaMGE[arena_index] = false;
+	g_fArenaRespawnTime[arena_index] = 5.0;
+	g_iArenaFraglimit[arena_index] = g_iArenaCaplimit[arena_index];
+	CreateTimer(1.5, Timer_StartDuel, arena_index);
+	UpdateArenaName(arena_index);
+
+	if(g_iArenaQueue[arena_index][SLOT_ONE]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_ONE], "Changed current arena to KOTH mode!");
+	}
+
+	if(g_iArenaQueue[arena_index][SLOT_TWO]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_TWO], "Changed current arena to KOTH mode");
+	}
+
+	return Plugin_Handled;
+}
+
+public Action Command_Mge(int client, int args)
+{
+	if (!IsValidClient(client))
+		return Plugin_Continue;
+
+	int arena_index = g_iPlayerArena[client];
+	//new player_slot = g_iPlayerSlot[client];
+
+	if (!arena_index) {
+		PrintToChat(client, "You are not in an arena!");
+		return Plugin_Continue;
+	}
+
+	if (g_bArenaMGE[arena_index]) {
+		PrintToChat(client, "This arena is already in MGE mode!");
+		return Plugin_Continue;
+	}
+
+	g_bArenaKoth[arena_index] = false;
+	g_bArenaMGE[arena_index] = true;
+	g_fArenaRespawnTime[arena_index] = 0.2;
+	g_iArenaFraglimit[arena_index] = g_iArenaMgelimit[arena_index];
+	CreateTimer(1.5, Timer_StartDuel, arena_index);
+	UpdateArenaName(arena_index);
+
+	if(g_iArenaQueue[arena_index][SLOT_ONE]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_ONE], "Changed current arena to MGE mode!");
+	}
+
+	if(g_iArenaQueue[arena_index][SLOT_TWO]) {
+		PrintToChat(g_iArenaQueue[arena_index][SLOT_TWO], "Changed current arena to MGE mode");
+	}
+
+	return Plugin_Handled;
+}
+
+public void UpdateArenaName(int arena)
+{
+	char mode[4], type[8];
+	Format(mode, sizeof(mode), "%s", g_bFourPersonArena[arena] ? "2v2" : "1v1");
+	Format(type, sizeof(type), "%s",
+		g_bArenaMGE[arena] ? "MGE" :
+		g_bArenaUltiduo[arena] ? "ULTI" :
+		g_bArenaKoth[arena] ? "KOTH" :
+		g_bArenaAmmomod[arena] ? "AMOD" :
+		g_bArenaBBall[arena] ? "BBALL" :
+		g_bArenaMidair[arena] ? "MIDA" :
+		g_bArenaEndif[arena] ? "ENDIF" : ""
+	);
+	Format(g_sArenaName[arena], sizeof(g_sArenaName), "%s [%s %s]", g_sArenaOriginalName[arena], mode, type);
+	LogMessage("Arena %s updated to %s", g_sArenaOriginalName[arena], g_sArenaName[arena]);
 }
