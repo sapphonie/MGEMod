@@ -545,6 +545,7 @@ public void OnClientPutInServer(int client)
 	}
 	else
 	{
+		// ChangeClientTeam(client, TEAM_SPEC);
 		CreateTimer(5.0, Timer_ShowAdv, GetClientUserId(client)); /* Show advice to type !add in chat */
 		g_bHitBlip[client] = false;
 		g_bShowHud[client] = true;
