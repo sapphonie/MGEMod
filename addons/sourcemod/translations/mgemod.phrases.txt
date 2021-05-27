@@ -1,4 +1,4 @@
-﻿// colors:
+// colors:
 // player names - {lightgreen}
 // arena name - {greeen}
 // info/tip - {olive}
@@ -106,7 +106,7 @@
 	"Welcome1"
 	{
 		"#format"		"{1:s}"
-		"en"			"{olive}Welcome to MGEMod version {lightgreen}{1}"
+		"en"			"{olive}Welcome to MGE version {lightgreen}{1}"
 	}
 	"Welcome2"
 	{

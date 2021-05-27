@@ -106,11 +106,11 @@
 	"Welcome1"
 	{
 		"#format"		"{1:s}"
-		"ru"			"{olive}Добро пожаловать на MGEMod версия {lightgreen}{1}"
+		"ru"			"{olive}Добро пожаловать на MGE версия {lightgreen}{1}"
 	}
 	"Welcome2"
 	{
-		"ru"			"{olive}Карта создана{default}: {lightgreen}Swaty, Jstn7477 {default}и {lightgreen}CB"		
+		"ru"			"{olive}Карта создана{default}: {lightgreen}Swaty, Jstn7477 {default}и {lightgreen}CB"
 	}
 	"Welcome3"
 	{
@@ -139,7 +139,7 @@
 	}
 	"Cmd_MGEMod"
 	{
-		"ru"			"[MGE] MGEMod\t - Меню"
+		"ru"			"[MGE] mgemod\t - Меню"
 	}
 	"Cmd_Add"
 	{

@@ -1,4 +1,4 @@
-﻿// colors:
+// colors:
 // player names - {lightgreen}
 // arena name - {greeen}
 // info/tip - {olive}
@@ -106,7 +106,7 @@
     "Welcome1"
     {
         "#format"       "{1:s}"
-        "chi"           "{olive}欢迎来玩 MGEMod，插件版本：{lightgreen}{1}"
+        "chi"           "{olive}欢迎来玩 MGE，插件版本：{lightgreen}{1}"
     }
     "Welcome2"
     {
