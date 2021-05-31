@@ -1,4 +1,4 @@
-﻿// colors:
+// colors:
 // player names - {lightgreen}
 // arena name - {greeen}
 // info/tip - {olive}
@@ -17,7 +17,7 @@
 	"HPLeft"
 	{
 		"#format"		"{1:i}"
-		"de"			"{green}[MGEMod]{default} Dein Gegner überlebte mit {green}{1}{default} HP."
+		"de"			"{green}[MGE]{default} Dein Gegner überlebte mit {green}{1}{default} HP."
 	}
 	"Adv"
 	{
@@ -106,7 +106,7 @@
 	"Welcome1"
 	{
 		"#format"		"{1:s}"
-		"de"			"{olive}Willkommen auf MGEMod version {lightgreen}{1}"
+		"de"			"{olive}Willkommen auf MGE version {lightgreen}{1}"
 	}
 	"Welcome2"
 	{
@@ -122,7 +122,7 @@
 	}
 	"top5error"
 	{
-		"de"			"[MGEMod] Noch nicht genügend Spieler in der Datenbank."
+		"de"			"[MGE] Noch nicht genügend Spieler in der Datenbank."
 	}
 	"bballdunk"
 	{
@@ -131,47 +131,47 @@
 	}
 	"Cmd_MGECmds"
 	{
-		"de"			"[MGEMod] Help: Befehl-Infos"
+		"de"			"[MGE] Help: Befehl-Infos"
 	}
 	"Cmd_SeeConsole"
 	{
-		"de"			"[MGEMod] Siehe Konsole für Ausgabe."
+		"de"			"[MGE] Siehe Konsole für Ausgabe."
 	}
 	"Cmd_MGEMod"
 	{
-		"de"			"[MGEMod] mgemod\t - Menü"
+		"de"			"[MGE] mgemod\t - Menü"
 	}
 	"Cmd_Add"
 	{
-		"de"			"[MGEMod] add\t - Verwendung: add <Arena-Nummer/Arena-Name>. Sich zu einer Arena hinzufügen."
+		"de"			"[MGE] add\t - Verwendung: add <Arena-Nummer/Arena-Name>. Sich zu einer Arena hinzufügen."
 	}
 	"Cmd_Remove"
 	{
-		"de"			"[MGEMod] remove\t - Sich von aktueller Arena entfernen."
+		"de"			"[MGE] remove\t - Sich von aktueller Arena entfernen."
 	}
 	"Cmd_First"
 	{
-		"de"			"[MGEMod] first\t - Erste verfügbare Arena betreten."
+		"de"			"[MGE] first\t - Erste verfügbare Arena betreten."
 	}
 	"Cmd_Top5"
 	{
-		"de"			"[MGEMod] top5\t - Top 5 Spieler anzeigen."
+		"de"			"[MGE] top5\t - Top 5 Spieler anzeigen."
 	}
 	"Cmd_Rank"
 	{
-		"de"			"[MGEMod] rank\t - Verwendung: rank <Spielername>. Spieler-Platzierung anzeigen."
+		"de"			"[MGE] rank\t - Verwendung: rank <Spielername>. Spieler-Platzierung anzeigen."
 	}
 	"Cmd_HitBlip"
 	{
-		"de"			"[MGEMod] hitblip - An- / Ausschalten des Hitblips."
+		"de"			"[MGE] hitblip - An- / Ausschalten des Hitblips."
 	}
 	"Cmd_Hud"
 	{
-		"de"			"[MGEMod] hud - An- / Ausschalten des Text-HUDs."
+		"de"			"[MGE] hud - An- / Ausschalten des Text-HUDs."
 	}
 		"Cmd_Handicap"
 	{
-		"de"			"[MGEMod] handicap - Setzt deine maxmimale HP herab. Schreibe '!handicap off' um es zu deaktvieren."
+		"de"			"[MGE] handicap - Setzt deine maxmimale HP herab. Schreibe '!handicap off' um es zu deaktvieren."
 	}
 	"NoClassChange"
 	{

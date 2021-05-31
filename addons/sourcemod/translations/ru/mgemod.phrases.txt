@@ -17,7 +17,7 @@
 	"HPLeft"
 	{
 		"#format"		"{1:i}"
-		"ru"			"{green}[MGEMod]{default} У вашего оппонента осталось {green}{1}{default} жизней."
+		"ru"			"{green}[MGE]{default} У вашего оппонента осталось {green}{1}{default} жизней."
 	}
 	"Adv"
 	{
@@ -106,11 +106,11 @@
 	"Welcome1"
 	{
 		"#format"		"{1:s}"
-		"ru"			"{olive}Добро пожаловать на MGEMod версия {lightgreen}{1}"
+		"ru"			"{olive}Добро пожаловать на MGE версия {lightgreen}{1}"
 	}
 	"Welcome2"
 	{
-		"ru"			"{olive}Карта создана{default}: {lightgreen}Swaty, Jstn7477 {default}и {lightgreen}CB"		
+		"ru"			"{olive}Карта создана{default}: {lightgreen}Swaty, Jstn7477 {default}и {lightgreen}CB"
 	}
 	"Welcome3"
 	{
@@ -122,7 +122,7 @@
 	}
 	"top5error"
 	{
-		"ru"			"[MGEMod] Еще не набралось достаточное количество игроов."
+		"ru"			"[MGE] Еще не набралось достаточное количество игроов."
 	}
 	"bballdunk"
 	{
@@ -131,39 +131,39 @@
 	}
 	"Cmd_MGECmds"
 	{
-		"ru"			"[MGEMod] ПОМОЩЬ: Информация о командах"
+		"ru"			"[MGE] ПОМОЩЬ: Информация о командах"
 	}
 	"Cmd_SeeConsole"
 	{
-		"ru"			"[MGEMod] Смотри в консоли."
+		"ru"			"[MGE] Смотри в консоли."
 	}
 	"Cmd_MGEMod"
 	{
-		"ru"			"[MGEMod] MGEMod\t - Меню"
+		"ru"			"[MGE] mgemod\t - Меню"
 	}
 	"Cmd_Add"
 	{
-		"ru"			"[MGEMod] add\t - Используйте: add <номер арены/имя арены>. Зайти на арену."
+		"ru"			"[MGE] add\t - Используйте: add <номер арены/имя арены>. Зайти на арену."
 	}
 	"Cmd_Remove"
 	{
-		"ru"			"[MGEMod] remove\t - Удалиться с арены."
+		"ru"			"[MGE] remove\t - Удалиться с арены."
 	}
 	"Cmd_First"
 	{
-		"ru"			"[MGEMod] first\t - Присоединиться к любой свободной арене."
+		"ru"			"[MGE] first\t - Присоединиться к любой свободной арене."
 	}
 	"Cmd_Top5"
 	{
-		"ru"			"[MGEMod] top5\t - Показать пятерку лучших игроков."
+		"ru"			"[MGE] top5\t - Показать пятерку лучших игроков."
 	}
 	"Cmd_Rank"
 	{
-		"ru"			"[MGEMod] rank\t - Используйте: rank <имя игрока>. Посмотреть статистику игрока."
+		"ru"			"[MGE] rank\t - Используйте: rank <имя игрока>. Посмотреть статистику игрока."
 	}
 	"Cmd_HitBlip"
 	{
-		"ru"			"[MGEMod] hitblip - Включить\отключить звук при попадании."
+		"ru"			"[MGE] hitblip - Включить\отключить звук при попадании."
 	}
 	"NoClassChange"
 	{

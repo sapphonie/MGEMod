@@ -1,4 +1,4 @@
-﻿// colors:
+// colors:
 // player names - {lightgreen}
 // arena name - {greeen}
 // info/tip - {olive}
@@ -17,7 +17,7 @@
 	"HPLeft"
 	{
 		"#format"		"{1:i}"
-		"en"			"{green}[MGEMod]{default} Your opponent had {green}{1}{default} health remaining."
+		"en"			"{green}[MGE]{default} Your opponent had {green}{1}{default} health remaining."
 	}
 	"Adv"
 	{
@@ -106,7 +106,7 @@
 	"Welcome1"
 	{
 		"#format"		"{1:s}"
-		"en"			"{olive}Welcome to MGEMod version {lightgreen}{1}"
+		"en"			"{olive}Welcome to MGE version {lightgreen}{1}"
 	}
 	"Welcome2"
 	{
@@ -122,7 +122,7 @@
 	}
 	"top5error"
 	{
-		"en"			"[MGEMod] Not enough players in database yet."
+		"en"			"[MGE] Not enough players in database yet."
 	}
 	"bballdunk"
 	{
@@ -131,47 +131,47 @@
 	}
 	"Cmd_MGECmds"
 	{
-		"en"			"[MGEMod] Help: Command Information"
+		"en"			"[MGE] Help: Command Information"
 	}
 	"Cmd_SeeConsole"
 	{
-		"en"			"[MGEMod] See console for output."
+		"en"			"[MGE] See console for output."
 	}
 	"Cmd_MGEMod"
 	{
-		"en"			"[MGEMod] mgemod\t - Menu"
+		"en"			"[MGE] mgemod\t - Menu"
 	}
 	"Cmd_Add"
 	{
-		"en"			"[MGEMod] add\t - Usage: add <arena number/arena name>. Add to an arena."
+		"en"			"[MGE] add\t - Usage: add <arena number/arena name>. Add to an arena."
 	}
 	"Cmd_Remove"
 	{
-		"en"			"[MGEMod] remove\t - Remove from current arena."
+		"en"			"[MGE] remove\t - Remove from current arena."
 	}
 	"Cmd_First"
 	{
-		"en"			"[MGEMod] first\t - Join the first available arena."
+		"en"			"[MGE] first\t - Join the first available arena."
 	}
 	"Cmd_Top5"
 	{
-		"en"			"[MGEMod] top5\t - Display the Top 5 players."
+		"en"			"[MGE] top5\t - Display the Top 5 players."
 	}
 	"Cmd_Rank"
 	{
-		"en"			"[MGEMod] rank\t - Usage: rank <player name>. Show that player's rank."
+		"en"			"[MGE] rank\t - Usage: rank <player name>. Show that player's rank."
 	}
 	"Cmd_HitBlip"
 	{
-		"en"			"[MGEMod] hitblip - Toggle hitblip."
+		"en"			"[MGE] hitblip - Toggle hitblip."
 	}
 	"Cmd_Hud"
 	{
-		"en"			"[MGEMod] hud\t - Toggle text hud overlay."
+		"en"			"[MGE] hud\t - Toggle text hud overlay."
 	}
 	"Cmd_Handicap"
 	{
-		"en"			"[MGEMod] handicap - Reduce your maximum HP. Type '!handicap off' to disable."
+		"en"			"[MGE] handicap - Reduce your maximum HP. Type '!handicap off' to disable."
 	}
 	"NoClassChange"
 	{
