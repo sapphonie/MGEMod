@@ -3079,7 +3079,9 @@ public Action Command_Remove(int client, int args)
 public Action Command_JoinClass(int client, int args)
 {
     if (!IsValidClient(client))
+    {
         return Plugin_Continue;
+    }
 
     if (args)
     {
@@ -3100,7 +3102,11 @@ public Action Command_JoinClass(int client, int args)
         */
         // ^ bro this bug was fixed in fucking 2013
         if (new_class == g_tfctPlayerClass[client])
+        {
             return Plugin_Handled; // no need to do anything, as nothing has changed
+        }
+
+
 
         if (arena_index == 0) // if client is on arena
         {
@@ -3161,6 +3167,7 @@ public Action Command_JoinClass(int client, int args)
                 }
             }
 
+
             if (g_iPlayerSlot[client] == SLOT_ONE || g_iPlayerSlot[client] == SLOT_TWO || (g_bFourPersonArena[arena_index] && (g_iPlayerSlot[client] == SLOT_FOUR || g_iPlayerSlot[client] == SLOT_THREE)))
             {
                 if (g_iArenaStatus[arena_index] != AS_FIGHT || g_bArenaMGE[arena_index] || g_bArenaEndif[arena_index] || g_bArenaKoth[arena_index])
@@ -3178,6 +3185,8 @@ public Action Command_JoinClass(int client, int args)
                             int killer_team_slot = (killer_slot > 2) ? (killer_slot - 2) : killer_slot;
                             int client_team_slot = (g_iPlayerSlot[client] > 2) ? (g_iPlayerSlot[client] - 2) : g_iPlayerSlot[client];
 
+
+
                             if (g_bFourPersonArena[arena_index])
                             {
                                 killer_teammate = getTeammate(killer, killer_slot, arena_index);
@@ -3190,7 +3199,9 @@ public Action Command_JoinClass(int client, int args)
                                 MC_PrintToChat(client, "%t", "ClassChangePoint");
 
                                 if (g_bFourPersonArena[arena_index] && killer_teammate)
+                                {
                                     CreateTimer(3.0, Timer_NewRound, arena_index);
+                                }
                             }
 
                             ShowPlayerHud(client);
@@ -3937,6 +3948,7 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
 
     g_tfctPlayerClass[client] = TF2_GetPlayerClass(client);
 
+
     ResetClientAmmoCounts(client);
 
     if (!g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] != SLOT_ONE && g_iPlayerSlot[client] != SLOT_TWO)
@@ -3952,7 +3964,9 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
     }
 
     if (g_bArenaBBall[arena_index])
+    {
         g_bPlayerHasIntel[client] = false;
+    }
 }
 
 public Action Event_WinPanel(Event event, const char[] name, bool dontBroadcast)
@@ -4686,6 +4700,32 @@ public Action Timer_Tele(Handle timer, int userid)
 
     float vel[3] =  { 0.0, 0.0, 0.0 };
 
+
+    // CHECK FOR MANNTREADS IN ENDIF
+    if (g_bArenaEndif[arena_index])
+    {
+        // loop thru client's wearable entities. not adding gamedata for this shiz
+        int i = -1;
+        while ((i = FindEntityByClassname(i, "tf_wearable*")) != -1)
+        {
+            if (client != GetEntPropEnt(i, Prop_Send, "m_hOwnerEntity"))
+            {
+                continue;
+            }
+            int itemdef = GetEntProp(i, Prop_Send, "m_iItemDefinitionIndex");
+            // manntreads itemdef
+            if (itemdef == 444)
+            {
+                // just in case.
+                RemoveEntity(i);
+                PrintToChat(client, "[MGE] Arena = EndIf and you have the Manntreads. Automatically removing you from the queue.");
+                // as much as I'd love to deduct elo here... nah.
+                RemoveFromQueue(client, false);
+            }
+        }
+    }
+
+
     // BBall and 2v2 arenas handle spawns differently, each team, has their own spawns.
     if (g_bArenaBBall[arena_index])
     {
@@ -4859,7 +4899,9 @@ public Action Timer_ResetPlayer(Handle timer, int userid)
     int client = GetClientOfUserId(userid);
 
     if (IsValidClient(client))
+    {
         ResetPlayer(client);
+    }
 }
 
 public Action Timer_ChangePlayerSpec(Handle timer, any player)
