@@ -4719,8 +4719,8 @@ public Action Timer_Tele(Handle timer, int userid)
                 // just in case.
                 RemoveEntity(i);
                 PrintToChat(client, "[MGE] Arena = EndIf and you have the Manntreads. Automatically removing you from the queue.");
-                // as much as I'd love to deduct elo here... nah.
-                RemoveFromQueue(client, false);
+                // run elo calc so clients can't be cheeky if they're losing
+                RemoveFromQueue(client, true);
             }
         }
     }
