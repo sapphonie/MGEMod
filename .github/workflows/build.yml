@@ -33,7 +33,7 @@ jobs:
     - name: Download chillypunch lol
       run: |
         cd maps
-        wget https://sappho.io/files/tf/maps/mge_chillypunch_final4_fix2.bsp
+        wget http://dl.serveme.tf/maps/mge_chillypunch_final4_fix2.bsp
 
     - name: Zip packages
       run: |
