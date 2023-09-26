@@ -9,6 +9,8 @@ For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
 ## Downloading
 - Download the latest release [here](https://github.com/sapphonie/MGEMod/releases/latest), unzip it, and merge it into your `/tf/` folder.
 
+### ***DO NOT*** download by cloning. You WILL NOT be able to use the plugin in this way.
+
 ## Known issues
 ~~A server segfault can be caused by [certain interactions between Sniper, Heavy, and Pyro](https://forums.alliedmods.net/showthread.php?t=302264), if they are enabled. This is a bug with TF2, not MGEMod. A SourceMod extension fix for this is available [here](https://github.com/Kenzzer/JetPack_Fix).~~ This was fixed in a recent TF2 update.
 
