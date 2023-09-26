@@ -30,6 +30,11 @@ jobs:
         spcomp -i"./addons/sourcemod/scripting/include/" addons/sourcemod/scripting/mge.sp -o ./addons/sourcemod/plugins/mge.smx
         ls -la
 
+    - name: Download chillypunch lol
+      run: |
+        cd maps
+        wget https://sappho.io/files/tf/maps/mge_chillypunch_final4_fix2.bsp
+
     - name: Zip packages
       run: |
         mkdir build
