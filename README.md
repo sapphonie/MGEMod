@@ -7,7 +7,7 @@ For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
 - [TF2Wiki](http://wiki.teamfortress.com/wiki/MGE_Mod)
 
 ## Downloading
-- Download the repository clone zip [here](https://github.com/sapphonie/MGEMod/archive/master.zip) and merge into your `/tf/` folder.
+- Download the latest release [here](https://github.com/sapphonie/MGEMod/releases/latest), unzip it, and merge it into your `/tf/` folder.
 
 ## Known issues
 ~~A server segfault can be caused by [certain interactions between Sniper, Heavy, and Pyro](https://forums.alliedmods.net/showthread.php?t=302264), if they are enabled. This is a bug with TF2, not MGEMod. A SourceMod extension fix for this is available [here](https://github.com/Kenzzer/JetPack_Fix).~~ This was fixed in a recent TF2 update.
