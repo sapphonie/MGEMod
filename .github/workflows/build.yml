@@ -28,13 +28,13 @@ jobs:
       run: |
         cd ./scripting
         pwd
-        spcomp -i"./include/" stac.sp -o ../plugins/stac.smx
+        spcomp -i"./addons/sourcemod/scripting/include/" addons/sourcemod/scripting/mge.sp -o ./addons/sourcemod/plugins/mge.smx
         ls -la
 
     - name: Zip packages
       run: |
         mkdir build
-        7za a -r build/stac.zip scripting/ plugins/ extensions/ gamedata/ translations/
+        7za a -r build/stac.zip ./
         ls -la
         pwd
 
