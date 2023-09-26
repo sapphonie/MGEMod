@@ -1,0 +1,50 @@
+name: StAC Autobuild
+# modified from https://github.com/nosoop/NinjaBuild-SMPlugin/blob/master/contrib/github-workflow/build-on-version-tag-push.yml
+
+on:
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+  run:
+    name: Run action
+    runs-on: ubuntu-latest
+
+    # skip build on '[ci skip]'
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Setup SourcePawn Compiler
+      uses: rumblefrog/setup-sp@master
+      with:
+        version: "1.11.x"
+
+    - name: Compile plugins
+      run: |
+        cd ./scripting
+        pwd
+        spcomp -i"./include/" stac.sp -o ../plugins/stac.smx
+        ls -la
+
+    - name: Zip packages
+      run: |
+        mkdir build
+        7za a -r build/stac.zip scripting/ plugins/ extensions/ gamedata/ translations/
+        ls -la
+        pwd
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          ./build/stac.zip
+        fail_on_unmatched_files: true
+        generate_release_notes: true
+        # if: contains(github.ref, 'beta')
+        # prerelease: true
