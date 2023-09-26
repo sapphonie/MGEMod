@@ -4,7 +4,6 @@
 // ====[ INCLUDES ]====================================================
 #include <sourcemod>
 #include <tf2_stocks>
-#include <entity_prop_stocks>
 #include <sdkhooks>
 #include <morecolors>
 // ====[ CONSTANTS ]===================================================
@@ -91,7 +90,7 @@ int
 Database db; // Connection to SQL database.
 Handle g_hDBReconnectTimer;
 
-char g_sDBConfig[64];
+char g_sDBConfig[256];
 int g_iReconnectInterval;
 
 // Global CVar Handles
@@ -201,7 +200,7 @@ bool
     g_bPlayerRestoringAmmo  [MAXPLAYERS + 1],//player is awaiting full ammo restore
     g_bPlayerHasIntel       [MAXPLAYERS + 1],
     g_bHitBlip              [MAXPLAYERS + 1],
-    g_bShowHud              [MAXPLAYERS + 1] = true,
+    g_bShowHud              [MAXPLAYERS + 1] = { true, ... },
     g_iPlayerWaiting        [MAXPLAYERS + 1],
     g_bCanPlayerSwap        [MAXPLAYERS + 1],
     g_bCanPlayerGetIntel    [MAXPLAYERS + 1];
@@ -555,7 +554,7 @@ public void OnEntityCreated(int entity, const char[] classname)
  * When a projectile is touched.
  * This is how direct hits from pipes are rockets are detected.
  * -------------------------------------------------------------------------- */
-public void OnProjectileTouch(int entity, int other)
+void OnProjectileTouch(int entity, int other)
 {
     if (other > 0 && other <= MaxClients)
         g_bPlayerTakenDirectHit[other] = true;
@@ -566,6 +565,10 @@ public void OnProjectileTouch(int entity, int other)
  *
  * Called once a client is fully in-game, and authorized with Steam.
  * Client-specific variables are initialized here.
+ * 
+ * NOTE: This needs to not be here. This will break when steam is down, this probably has other issues as well
+ * 
+ * Most of this should be in OnClientPutInServer
  * -------------------------------------------------------------------------- */
 public void OnClientPostAdminCheck(int client)
 {
@@ -635,8 +638,8 @@ public void OnClientDisconnect(int client)
 
         if (g_bFourPersonArena[arena_index])
         {
-            player_teammate = getTeammate(client, player_slot, arena_index);
-            foe2 = getTeammate(foe, foe_slot, arena_index);
+            player_teammate = getTeammate(player_slot, arena_index);
+            foe2 = getTeammate(foe_slot, arena_index);
         }
 
         g_iPlayerArena[client] = 0;
@@ -983,7 +986,7 @@ public void OnGameFrame()
  *
  * When a client takes damage.
  * -------------------------------------------------------------------------- */
-public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
+Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
     if (!IsValidClient(victim) || !IsValidClient(attacker))
         return Plugin_Continue;
@@ -1003,7 +1006,20 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 * When a client runs a command.
 * Infinite ammo is triggered here.
 * -------------------------------------------------------------------------- */
-public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon)
+public Action OnPlayerRunCmd
+(
+    int client,
+    int& buttons,
+    int& impulse,
+    float vel[3],
+    float angles[3],
+    int& weapon,
+    int& subtype,
+    int& cmdnum,
+    int& tickcount,
+    int& seed,
+    int mouse[2]
+)
 {
     int arena_index = g_iPlayerArena[client];
     if (g_bArenaInfAmmo[arena_index])
@@ -1014,54 +1030,56 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
             CreateTimer(0.4, Timer_GiveAmmo, GetClientUserId(client));
         }
     }
+    return Plugin_Continue;
 }
 
 /* OnTouchPoint(int entity, int other)
 *
 * When the point is touched
 * ------------------------------------------------------------------------- */
-public Action OnEndTouchPoint(int entity, int other)
+Action OnEndTouchPoint(int entity, int other)
 {
     int client = other;
 
     if (!IsValidClient(client))
-        return;
-
+    {
+        return Plugin_Continue;
+    }
     int arena_index = g_iPlayerArena[client];
     int client_slot = g_iPlayerSlot[client];
 
     g_bPlayerTouchPoint[arena_index][client_slot] = false;
-
+    return Plugin_Continue;
 }
 
 /* OnTouchPoint(int entity, int other)
 *
 * When the point is touched
 * ------------------------------------------------------------------------- */
-public Action OnTouchPoint(int entity, int other)
+Action OnTouchPoint(int entity, int other)
 {
     int client = other;
 
     if (!IsValidClient(client))
-        return;
+        return Plugin_Continue;
 
     int arena_index = g_iPlayerArena[client];
     int client_slot = g_iPlayerSlot[client];
 
     g_bPlayerTouchPoint[arena_index][client_slot] = true;
-
+    return Plugin_Continue;
 }
 
 /* OnTouchHoop(int entity, int other)
 *
 * When a hoop is touched by a player in BBall.
 * -------------------------------------------------------------------------- */
-public Action OnTouchHoop(int entity, int other)
+Action OnTouchHoop(int entity, int other)
 {
     int client = other;
 
     if (!IsValidClient(client))
-        return;
+        return Plugin_Continue;
 
     int arena_index = g_iPlayerArena[client];
     int fraglimit = g_iArenaFraglimit[arena_index];
@@ -1075,14 +1093,14 @@ public Action OnTouchHoop(int entity, int other)
 
     if (g_bFourPersonArena[arena_index])
     {
-        client_teammate = getTeammate(client, client_slot, arena_index);
-        foe_teammate = getTeammate(foe, foe_slot, arena_index);
+        client_teammate = getTeammate(client_slot, arena_index);
+        foe_teammate = getTeammate(foe_slot, arena_index);
     }
 
 
 
     if (!IsValidClient(foe) || !g_bArenaBBall[arena_index])
-        return;
+        return Plugin_Continue;
 
     if (entity == g_iBBallHoop[arena_index][foe_slot] && g_bPlayerHasIntel[client])
     {
@@ -1180,21 +1198,22 @@ public Action OnTouchHoop(int entity, int other)
 
         ShowSpecHudToArena(arena_index);
     }
+    return Plugin_Continue;
 }
 
 /* OnTouchIntel(int entity, int other)
 *
 * When the intel is touched by a player in BBall.
 * -------------------------------------------------------------------------- */
-public Action OnTouchIntel(int entity, int other)
+Action OnTouchIntel(int entity, int other)
 {
     int client = other;
 
     if (!IsValidClient(client))
-        return;
+        return Plugin_Continue;
 
     if (!g_bCanPlayerGetIntel[client])
-        return;
+        return Plugin_Continue;
 
     int arena_index = g_iPlayerArena[client];
     g_bPlayerHasIntel[client] = true;
@@ -1243,6 +1262,8 @@ public Action OnTouchIntel(int entity, int other)
             ShowPlayerHud(foe2);
         }
     }
+
+    return Plugin_Continue;
 }
 
 /*
@@ -1407,8 +1428,8 @@ void ShowPlayerHud(int client)
 
     if (g_bFourPersonArena[arena_index])
     {
-        client_teammate = getTeammate(client, client_slot, arena_index);
-        client_foe2 = getTeammate(client_foe, client_foe_slot, arena_index);
+        client_teammate = getTeammate(client_slot, arena_index);
+        client_foe2 = getTeammate(client_foe_slot, arena_index);
     }
 
     if (g_bArenaKoth[arena_index])
@@ -1792,8 +1813,8 @@ void RemoveFromQueue(int client, bool calcstats = false, bool specfix = false)
 
             if (g_bFourPersonArena[arena_index])
             {
-                player_teammate = getTeammate(client, player_slot, arena_index);
-                foe2 = getTeammate(foe, foe_slot, arena_index);
+                player_teammate = getTeammate(player_slot, arena_index);
+                foe2 = getTeammate(foe_slot, arena_index);
 
             }
 
@@ -2501,7 +2522,7 @@ void SetPlayerToAllowedClass(int client, int arena_index)
             {
                 if (g_bArenaUltiduo[arena_index] && g_bFourPersonArena[arena_index] && g_iPlayerSlot[client] > SLOT_TWO)
                 {
-                    int client_teammate = getTeammate(client, g_iPlayerSlot[client], arena_index);
+                    int client_teammate = getTeammate(g_iPlayerSlot[client], arena_index);
                     if (view_as<TFClassType>(i) == g_tfctPlayerClass[client_teammate])
                     {
                         //Tell the player what he did wrong
@@ -2698,14 +2719,14 @@ void ShowMainMenu(int client, bool listplayers = true)
     }
 }
 
-public int Menu_Main(Menu menu, MenuAction action, int param1, int param2)
+int Menu_Main(Menu menu, MenuAction action, int param1, int param2)
 {
     switch (action)
     {
         case MenuAction_Select:
         {
             int client = param1;
-            if (!client)return;
+            if (!client)return 0;
             char capt[32];
             char sanum[32];
 
@@ -2718,7 +2739,7 @@ public int Menu_Main(Menu menu, MenuAction action, int param1, int param2)
                 {
                     //show warn msg
                     ShowMainMenu(client, false);
-                    return;
+                    return 0;
                 }
 
                 //checking rating
@@ -2730,11 +2751,11 @@ public int Menu_Main(Menu menu, MenuAction action, int param1, int param2)
                 {
                     MC_PrintToChat(client, "%t", "LowRating", playerrating, minrating);
                     ShowMainMenu(client, false);
-                    return;
+                    return 0;
                 } else if (maxrating > 0 && playerrating > maxrating) {
                     MC_PrintToChat(client, "%t", "HighRating", playerrating, maxrating);
                     ShowMainMenu(client, false);
-                    return;
+                    return 0;
                 }
 
                 if (g_iPlayerArena[client])
@@ -2754,9 +2775,11 @@ public int Menu_Main(Menu menu, MenuAction action, int param1, int param2)
             delete menu;
         }
     }
+
+    return 0;
 }
 
-public int SwapMenuHandler(Menu menu, MenuAction action, int param1, int param2)
+int SwapMenuHandler(Menu menu, MenuAction action, int param1, int param2)
 {
     /* If an option was selected, tell the client about the item. */
     if (action == MenuAction_Select)
@@ -2765,10 +2788,10 @@ public int SwapMenuHandler(Menu menu, MenuAction action, int param1, int param2)
         {
             int client = param1;
             if (!client)
-                return;
+                return 0;
 
             int arena_index = g_iPlayerArena[client];
-            int client_teammate = getTeammate(client, g_iPlayerSlot[client], arena_index);
+            int client_teammate = getTeammate(g_iPlayerSlot[client], arena_index);
             swapClasses(client, client_teammate);
 
         }
@@ -2785,6 +2808,8 @@ public int SwapMenuHandler(Menu menu, MenuAction action, int param1, int param2)
     {
         delete menu;
     }
+
+    return 0;
 }
 
 void ShowTop5Menu(int client, char[][] name, int[] rating)
@@ -2836,7 +2861,7 @@ void ShowTop5Menu(int client, char[][] name, int[] rating)
     menu.Display(client, 0);
 }
 
-public int Menu_Top5(Menu menu, MenuAction action, int param1, int param2)
+int Menu_Top5(Menu menu, MenuAction action, int param1, int param2)
 {
     switch (action)
     {
@@ -2881,9 +2906,11 @@ public int Menu_Top5(Menu menu, MenuAction action, int param1, int param2)
             delete menu;
         }
     }
+
+    return 0;
 }
 // ====[ ENDIF ]====================================================
-public Action BoostVectors(Handle timer, int userid)
+Action BoostVectors(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
     float vecClient[3];
@@ -2901,6 +2928,8 @@ public Action BoostVectors(Handle timer, int userid)
     }
 
     TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, vecBoost);
+
+    return Plugin_Continue;
 }
 
 
@@ -2908,7 +2937,7 @@ public Action BoostVectors(Handle timer, int userid)
 // ====[ CVARS ]====================================================
 // i think this shit needs a switch case rewrite
 
-public void handler_ConVarChange(Handle convar, const char[] oldValue, const char[] newValue)
+void handler_ConVarChange(Handle convar, const char[] oldValue, const char[] newValue)
 {
     if (convar == gcvar_blockFallDamage) {
         StringToInt(newValue) ? (g_bBlockFallDamage = true) : (g_bBlockFallDamage = false);
@@ -2951,7 +2980,7 @@ public void handler_ConVarChange(Handle convar, const char[] oldValue, const cha
 }
 
 // ====[ COMMANDS ]====================================================
-public Action Command_Menu(int client, int args)
+Action Command_Menu(int client, int args)
 {
     //handle commands "!ammomod" "!add" and such //building queue's menu and listing arena's
     int playerPrefTeam = 0;
@@ -3020,7 +3049,7 @@ public Action Command_Menu(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Swap(int client, int args)
+Action Command_Swap(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3041,13 +3070,13 @@ public Action Command_Swap(int client, int args)
     if (!g_bArenaUltiduo[arena_index] || !g_bFourPersonArena[arena_index])
         return Plugin_Continue;
 
-    int client_teammate = getTeammate(client, g_iPlayerSlot[client], arena_index);
+    int client_teammate = getTeammate(g_iPlayerSlot[client], arena_index);
     ShowSwapMenu(client_teammate);
     return Plugin_Handled;
 
 }
 
-public Action Command_Top5(int client, int args)
+Action Command_Top5(int client, int args)
 {
     if (g_bNoStats || !IsValidClient(client))
     {
@@ -3062,7 +3091,7 @@ public Action Command_Top5(int client, int args)
     return Plugin_Continue;
 }
 
-public Action Command_Remove(int client, int args)
+Action Command_Remove(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3071,7 +3100,7 @@ public Action Command_Remove(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_JoinClass(int client, int args)
+Action Command_JoinClass(int client, int args)
 {
     if (!IsValidClient(client))
     {
@@ -3084,7 +3113,7 @@ public Action Command_JoinClass(int client, int args)
         int client_teammate;
         if (g_bFourPersonArena[arena_index])
         {
-            client_teammate = getTeammate(client, g_iPlayerSlot[client], arena_index);
+            client_teammate = getTeammate(g_iPlayerSlot[client], arena_index);
         }
         char s_class[64];
         GetCmdArg(1, s_class, sizeof(s_class));
@@ -3184,7 +3213,7 @@ public Action Command_JoinClass(int client, int args)
 
                             if (g_bFourPersonArena[arena_index])
                             {
-                                killer_teammate = getTeammate(killer, killer_slot, arena_index);
+                                killer_teammate = getTeammate(killer_slot, arena_index);
                             }
                             if (g_iArenaStatus[arena_index] == AS_FIGHT && killer)
                             {
@@ -3293,7 +3322,7 @@ public Action Command_JoinClass(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_OneVsOne(int client, int args)
+Action Command_OneVsOne(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3342,7 +3371,7 @@ public Action Command_OneVsOne(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_TwoVsTwo(int client, int args)
+Action Command_TwoVsTwo(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3386,7 +3415,7 @@ public Action Command_TwoVsTwo(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Spec(int client, int args)
+Action Command_Spec(int client, int args)
 {  //detecting spectator target
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3395,7 +3424,7 @@ public Action Command_Spec(int client, int args)
     return Plugin_Continue;
 }
 
-public Action Command_AddBot(int client, int args)
+Action Command_AddBot(int client, int args)
 {  //adding bot to client's arena
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3411,7 +3440,7 @@ public Action Command_AddBot(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Loc(int client, int args)
+Action Command_Loc(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3424,7 +3453,7 @@ public Action Command_Loc(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_ToogleHitblip(int client, int args)
+Action Command_ToogleHitblip(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3435,7 +3464,7 @@ public Action Command_ToogleHitblip(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_ConnectionTest(int client, int args)
+Action Command_ConnectionTest(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3447,7 +3476,7 @@ public Action Command_ConnectionTest(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_ToggleHud(int client, int args)
+Action Command_ToggleHud(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3470,7 +3499,7 @@ public Action Command_ToggleHud(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Rank(int client, int args)
+Action Command_Rank(int client, int args)
 {
     if (g_bNoStats || !IsValidClient(client))
         return Plugin_Continue;
@@ -3503,7 +3532,7 @@ public Action Command_Rank(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Help(int client, int args)
+Action Command_Help(int client, int args)
 {
     if (!client || !IsValidClient(client))
         return Plugin_Continue;
@@ -3525,7 +3554,7 @@ public Action Command_Help(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_First(int client, int args)
+Action Command_First(int client, int args)
 {
     if (!client || !IsValidClient(client))
         return Plugin_Continue;
@@ -3567,7 +3596,7 @@ public Action Command_First(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Handicap(int client, int args)
+Action Command_Handicap(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -3633,8 +3662,8 @@ public Action Command_Handicap(int client, int args)
 
                 if (g_bFourPersonArena[arena_index])
                 {
-                    player_teammate = getTeammate(client, player_slot, arena_index);
-                    foe_teammate = getTeammate(foe, foe_slot, arena_index);
+                    player_teammate = getTeammate(player_slot, arena_index);
+                    foe_teammate = getTeammate(foe_slot, arena_index);
 
                     ShowPlayerHud(player_teammate);
                     ShowPlayerHud(foe_teammate);
@@ -3654,7 +3683,7 @@ public Action Command_Handicap(int client, int args)
 *
 * When a player drops the intel in BBall.
 * -------------------------------------------------------------------------- */
-public Action Command_DropItem(int client, const char[] command, int argc)
+Action Command_DropItem(int client, const char[] command, int argc)
 {
     int arena_index = g_iPlayerArena[client];
 
@@ -3702,7 +3731,7 @@ public Action Command_DropItem(int client, const char[] command, int argc)
 }
 
 //blocking sounds
-public Action sound_hook(int clients[MAXPLAYERS], int& numClients, char sample[PLATFORM_MAX_PATH], int& entity, int& channel, float& volume, int& level, int& pitch, int& flags, char soundEntry[PLATFORM_MAX_PATH], int& seed)
+Action sound_hook(int clients[MAXPLAYERS], int& numClients, char sample[PLATFORM_MAX_PATH], int& entity, int& channel, float& volume, int& level, int& pitch, int& flags, char soundEntry[PLATFORM_MAX_PATH], int& seed)
 {
     if (StrContains(sample, "pl_fallpain") >= 0 && g_bBlockFallDamage)
     {
@@ -3754,17 +3783,17 @@ void PrepareSQL() // Opens the connection to the database, and creates the table
 
 }
 
-public void T_SQLQueryOnConnect(Database owner, DBResultSet hndl, const char[] error, any data)
+void T_SQLQueryOnConnect(Database owner, DBResultSet hndl, const char[] error, any data)
 {
     int client = data;
 
-    if (hndl == null)
+    if ( hndl == null )
     {
         LogError("T_SQLQueryOnConnect failed: %s", error);
         return;
     }
 
-    if (client < 1 || client > MaxClients || !IsClientConnected(client))
+    if ( client < 1 || client > MaxClients || !IsClientConnected(client) )
     {
         LogError("T_SQLQueryOnConnect failed: client %d <%s> is invalid.", client, g_sPlayerSteamID[client]);
         return;
@@ -3799,7 +3828,7 @@ public void T_SQLQueryOnConnect(Database owner, DBResultSet hndl, const char[] e
     }
 }
 
-public void T_SQL_Top5(Database owner, DBResultSet hndl, const char[] error, any data)
+void T_SQL_Top5(Database owner, DBResultSet hndl, const char[] error, any data)
 {
     int client = data;
 
@@ -3838,7 +3867,7 @@ public void T_SQL_Top5(Database owner, DBResultSet hndl, const char[] error, any
 
 }
 
-public void T_SQL_Test(Database owner, DBResultSet hndl, const char[] error, any data)
+void T_SQL_Test(Database owner, DBResultSet hndl, const char[] error, any data)
 {
     int client = data;
 
@@ -3861,7 +3890,7 @@ public void T_SQL_Test(Database owner, DBResultSet hndl, const char[] error, any
         PrintToChat(client, "\x01Database is \x04Down\x01.");
 }
 
-public void SQLErrorCheckCallback(Database owner, DBResultSet hndl, const char[] error, any data)
+void SQLErrorCheckCallback(Database owner, DBResultSet hndl, const char[] error, any data)
 {
     if (!StrEqual("", error))
     {
@@ -3884,7 +3913,7 @@ public void SQLErrorCheckCallback(Database owner, DBResultSet hndl, const char[]
     }
 }
 
-public void SQLDbConnTest(Database owner, DBResultSet hndl, const char[] error, any data)
+void SQLDbConnTest(Database owner, DBResultSet hndl, const char[] error, any data)
 {
     if (!StrEqual("", error))
     {
@@ -3936,7 +3965,7 @@ public void SQLDbConnTest(Database owner, DBResultSet hndl, const char[] error, 
 ** ------------------------------------------------------------------
 **/
 
-public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
     int arena_index = g_iPlayerArena[client];
@@ -3962,15 +3991,19 @@ public Action Event_PlayerSpawn(Event event, const char[] name, bool dontBroadca
     {
         g_bPlayerHasIntel[client] = false;
     }
+
+    return Plugin_Continue;
 }
 
-public Action Event_WinPanel(Event event, const char[] name, bool dontBroadcast)
+Action Event_WinPanel(Event event, const char[] name, bool dontBroadcast)
 {
     // Disable stats so people leaving at the end of the map don't lose points.
     g_bNoStats = true;
+
+    return Plugin_Continue;
 }
 
-public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
+Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
     int victim = GetClientOfUserId(event.GetInt("userid"));
 
@@ -4037,7 +4070,7 @@ public Action Event_PlayerHurt(Event event, const char[] name, bool dontBroadcas
     return Plugin_Continue;
 }
 
-public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
     int victim = GetClientOfUserId(event.GetInt("userid"));
     int arena_index = g_iPlayerArena[victim];
@@ -4062,8 +4095,8 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
 
     if (g_bFourPersonArena[arena_index])
     {
-        victim_teammate = getTeammate(victim, victim_slot, arena_index);
-        killer_teammate = getTeammate(killer, killer_slot, arena_index);
+        victim_teammate = getTeammate(victim_slot, arena_index);
+        killer_teammate = getTeammate(killer_slot, arena_index);
     }
 
     RemoveClientParticle(victim);
@@ -4314,7 +4347,7 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadca
     return Plugin_Continue;
 }
 
-public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
+Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
 
@@ -4347,7 +4380,7 @@ public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcas
     return Plugin_Changed;
 }
 
-public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
     gcvar_WfP.SetInt(1); //cancel waiting for players
 
@@ -4474,36 +4507,40 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 ** ------------------------------------------------------------------
 **/
 
-public void RegenKiller(any killer)
+void RegenKiller(any killer)
 {
     TF2_RegeneratePlayer(killer);
 }
 
-public Action Timer_WelcomePlayer(Handle timer, int userid)
+Action Timer_WelcomePlayer(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
 
     if (!IsValidClient(client))
-        return;
+        return Plugin_Continue;
 
     MC_PrintToChat(client, "%t", "Welcome1", PL_VERSION);
     if (StrContains(g_sMapName, "mge_", false) == 0)
         MC_PrintToChat(client, "%t", "Welcome2");
     MC_PrintToChat(client, "%t", "Welcome3");
     g_hWelcomeTimer[client] = null;
+
+    return Plugin_Continue;
 }
 
-public Action Timer_SpecFix(Handle timer, int userid)
+Action Timer_SpecFix(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
     if (!IsValidClient(client))
-        return;
+        return Plugin_Continue;
 
     ChangeClientTeam(client, TEAM_RED);
     ChangeClientTeam(client, TEAM_SPEC);
+
+    return Plugin_Continue;
 }
 
-public Action Timer_SpecHudToAllArenas(Handle timer, int userid)
+Action Timer_SpecHudToAllArenas(Handle timer, int userid)
 {
     for (int i = 1; i <= g_iArenaCount; i++)
     ShowSpecHudToArena(i);
@@ -4511,20 +4548,24 @@ public Action Timer_SpecHudToAllArenas(Handle timer, int userid)
     return Plugin_Continue;
 }
 
-public Action Timer_ResetIntel(Handle timer, int userid)
+Action Timer_ResetIntel(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
     int arena_index = g_iPlayerArena[client];
 
     ResetIntel(arena_index, client);
+
+    return Plugin_Continue;
 }
 
-public Action Timer_AllowPlayerCap(Handle timer, int userid)
+Action Timer_AllowPlayerCap(Handle timer, int userid)
 {
     g_bCanPlayerGetIntel[userid] = true;
+
+    return Plugin_Continue;
 }
 
-public Action Timer_CountDown(Handle timer, any arena_index)
+Action Timer_CountDown(Handle timer, any arena_index)
 {
     int red_f1 = g_iArenaQueue[arena_index][SLOT_ONE];
     int blu_f1 = g_iArenaQueue[arena_index][SLOT_TWO];
@@ -4677,20 +4718,22 @@ public Action Timer_CountDown(Handle timer, any arena_index)
             return Plugin_Stop;
         }
     }
+    // unreachable
+    // return Plugin_Continue;
 }
 
-public Action Timer_Tele(Handle timer, int userid)
+Action Timer_Tele(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
     int arena_index = g_iPlayerArena[client];
 
     if (!arena_index)
-        return;
+        return Plugin_Continue;
 
     int player_slot = g_iPlayerSlot[client];
     if ((!g_bFourPersonArena[arena_index] && player_slot > SLOT_TWO) || (g_bFourPersonArena[arena_index] && player_slot > SLOT_FOUR))
     {
-        return;
+        return Plugin_Continue;
     }
 
     float vel[3] =  { 0.0, 0.0, 0.0 };
@@ -4739,7 +4782,7 @@ public Action Timer_Tele(Handle timer, int userid)
         TeleportEntity(client, g_fArenaSpawnOrigin[arena_index][random_int], g_fArenaSpawnAngles[arena_index][random_int], vel);
         EmitAmbientSound("items/spawn_item.wav", g_fArenaSpawnOrigin[arena_index][random_int], _, SNDLEVEL_NORMAL, _, 1.0);
         ShowPlayerHud(client);
-        return;
+        return Plugin_Continue;
     }
     else if (g_bArenaKoth[arena_index])
     {
@@ -4758,7 +4801,7 @@ public Action Timer_Tele(Handle timer, int userid)
         TeleportEntity(client, g_fArenaSpawnOrigin[arena_index][random_int], g_fArenaSpawnAngles[arena_index][random_int], vel);
         EmitAmbientSound("items/spawn_item.wav", g_fArenaSpawnOrigin[arena_index][random_int], _, SNDLEVEL_NORMAL, _, 1.0);
         ShowPlayerHud(client);
-        return;
+        return Plugin_Continue;
     }
     else if (g_bFourPersonArena[arena_index])
     {
@@ -4777,7 +4820,7 @@ public Action Timer_Tele(Handle timer, int userid)
         TeleportEntity(client, g_fArenaSpawnOrigin[arena_index][random_int], g_fArenaSpawnAngles[arena_index][random_int], vel);
         EmitAmbientSound("items/spawn_item.wav", g_fArenaSpawnOrigin[arena_index][random_int], _, SNDLEVEL_NORMAL, _, 1.0);
         ShowPlayerHud(client);
-        return;
+        return Plugin_Continue;
     }
 
     // Create an array that can hold all the arena's spawns.
@@ -4811,7 +4854,7 @@ public Action Timer_Tele(Handle timer, int userid)
                     TeleportEntity(client, g_fArenaSpawnOrigin[arena_index][RandomSpawn[i]], g_fArenaSpawnAngles[arena_index][RandomSpawn[i]], vel);
                     EmitAmbientSound("items/spawn_item.wav", g_fArenaSpawnOrigin[arena_index][RandomSpawn[i]], _, SNDLEVEL_NORMAL, _, 1.0);
                     ShowPlayerHud(client);
-                    return;
+                    return Plugin_Continue;
                 } else if (distance > besteffort_dist) {
                     besteffort_dist = distance;
                     besteffort_spawn = i;
@@ -4826,23 +4869,27 @@ public Action Timer_Tele(Handle timer, int userid)
         TeleportEntity(client, g_fArenaSpawnOrigin[arena_index][besteffort_spawn], g_fArenaSpawnAngles[arena_index][besteffort_spawn], vel);
         EmitAmbientSound("items/spawn_item.wav", g_fArenaSpawnOrigin[arena_index][besteffort_spawn], _, SNDLEVEL_NORMAL, _, 1.0);
         ShowPlayerHud(client);
-        return;
+        return Plugin_Continue;
     } else {
         // No foe, so just pick a random spawn.
         int random_int = GetRandomInt(1, g_iArenaSpawns[arena_index]);
         TeleportEntity(client, g_fArenaSpawnOrigin[arena_index][random_int], g_fArenaSpawnAngles[arena_index][random_int], vel);
         EmitAmbientSound("items/spawn_item.wav", g_fArenaSpawnOrigin[arena_index][random_int], _, SNDLEVEL_NORMAL, _, 1.0);
         ShowPlayerHud(client);
-        return;
+        return Plugin_Continue;
     }
+    // unreachable
+    // return Plugin_Continue;
 }
 
-public Action Timer_NewRound(Handle timer, any arena_index)
+Action Timer_NewRound(Handle timer, any arena_index)
 {
     StartCountDown(arena_index);
+
+    return Plugin_Continue;
 }
 
-public Action Timer_StartDuel(Handle timer, any arena_index)
+Action Timer_StartDuel(Handle timer, any arena_index)
 {
     ResetArena(arena_index);
 
@@ -4887,9 +4934,10 @@ public Action Timer_StartDuel(Handle timer, any arena_index)
 
     StartCountDown(arena_index);
 
+    return Plugin_Continue;
 }
 
-public Action Timer_ResetPlayer(Handle timer, int userid)
+Action Timer_ResetPlayer(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
 
@@ -4897,17 +4945,21 @@ public Action Timer_ResetPlayer(Handle timer, int userid)
     {
         ResetPlayer(client);
     }
+    
+    return Plugin_Continue;
 }
 
-public Action Timer_ChangePlayerSpec(Handle timer, any player)
+Action Timer_ChangePlayerSpec(Handle timer, any player)
 {
     if (IsValidClient(player) && !IsPlayerAlive(player))
     {
         ChangeClientTeam(player, TEAM_SPEC);
     }
+    
+    return Plugin_Continue;
 }
 
-public Action Timer_ChangeSpecTarget(Handle timer, int userid)
+Action Timer_ChangeSpecTarget(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
 
@@ -4932,7 +4984,7 @@ public Action Timer_ChangeSpecTarget(Handle timer, int userid)
     return Plugin_Stop;
 }
 
-public Action Timer_ShowAdv(Handle timer, int userid)
+Action Timer_ShowAdv(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
 
@@ -4945,11 +4997,11 @@ public Action Timer_ShowAdv(Handle timer, int userid)
     return Plugin_Continue;
 }
 
-public Action Timer_GiveAmmo(Handle timer, int userid)
+Action Timer_GiveAmmo(Handle timer, int userid)
 {
     int client = GetClientOfUserId(userid);
     if (!client || !IsValidEntity(client))
-        return;
+        return Plugin_Continue;
 
     g_bPlayerRestoringAmmo[client] = false;
 
@@ -4971,9 +5023,11 @@ public Action Timer_GiveAmmo(Handle timer, int userid)
             SetEntProp(weapon, Prop_Send, "m_iClip1", g_iPlayerClip[client][SLOT_TWO]);
     }
 
+    return Plugin_Continue;
 }
 
-public Action Timer_DeleteParticle(Handle timer, any particle)
+/*
+Action Timer_DeleteParticle(Handle timer, any particle)
 {
     if (IsValidEdict(particle))
     {
@@ -4985,31 +5039,40 @@ public Action Timer_DeleteParticle(Handle timer, any particle)
             RemoveEdict(particle);
         }
     }
-}
 
-public Action Timer_AddBotInQueue(Handle timer, DataPack pk)
+    return Plugin_Continue;
+}
+*/
+
+Action Timer_AddBotInQueue(Handle timer, DataPack pk)
 {
     pk.Reset();
     int client = GetClientOfUserId(pk.ReadCell());
     int arena_index = pk.ReadCell();
     AddInQueue(client, arena_index);
+
+    return Plugin_Continue;
 }
 
-public Action Timer_ResetSwap(Handle timer, int client)
+Action Timer_ResetSwap(Handle timer, int client)
 {
     g_bCanPlayerSwap[client] = true;
+
+    return Plugin_Continue;
 }
 
-public Action Timer_ReconnectToDB(Handle timer)
+Action Timer_ReconnectToDB(Handle timer)
 {
     g_hDBReconnectTimer = null;
 
     char query[256];
     Format(query, sizeof(query), "SELECT rating FROM mgemod_stats LIMIT 1");
     db.Query(SQLDbConnTest, query);
+
+    return Plugin_Continue;
 }
 
-public Action Timer_CountDownKoth(Handle timer, any arena_index)
+Action Timer_CountDownKoth(Handle timer, any arena_index)
 {
     //If there was time spent on the point/time spent reverting the point add/remove perecent to the point for however long they were/n't standing on it
     if (g_fCappedTime[arena_index] != 0)
@@ -5285,7 +5348,7 @@ public Action Timer_CountDownKoth(Handle timer, any arena_index)
     return Plugin_Continue;
 }
 
-public Action Timer_RegenArena(Handle timer, any arena_index)
+Action Timer_RegenArena(Handle timer, any arena_index)
 {
     if (g_iArenaStatus[arena_index] != AS_FIGHT)
         return Plugin_Stop;
@@ -5347,7 +5410,7 @@ public Action Timer_RegenArena(Handle timer, any arena_index)
  *
  * Ignores players.
  * -------------------------------------------------------------------------- */
-public bool TraceEntityFilterPlayer(int entity, int contentsMask)
+bool TraceEntityFilterPlayer(int entity, int contentsMask)
 {
     return entity > MaxClients || !entity;
 }
@@ -5356,7 +5419,8 @@ public bool TraceEntityFilterPlayer(int entity, int contentsMask)
  *
  * Returns only players.
  * -------------------------------------------------------------------------- */
-public bool TraceEntityPlayersOnly(int entity, int mask, int client)
+/*
+bool TraceEntityPlayersOnly(int entity, int mask, int client)
 {
     if (IsValidClient(entity) && entity != client)
     {
@@ -5367,6 +5431,7 @@ public bool TraceEntityPlayersOnly(int entity, int mask, int client)
         return false;
     }
 }
+*/
 
 /* IsValidClient()
  *
@@ -5548,7 +5613,7 @@ stock int FindEntityByClassname2(int startEnt, const char[] classname)
  * Gets a clients teammate if he's in a 4 player arena
  * This can actually be replaced by g_iArenaQueue[SLOT_X] but I didn't realize that array existed, so YOLO
  *---------------------------------------------------------------------*/
-public int getTeammate(int myClient, int myClientSlot, int arena_index)
+int getTeammate(int myClientSlot, int arena_index)
 {
 
     int client_teammate_slot;
@@ -5588,7 +5653,7 @@ bool isPlayerWaiting(int myClient)
 *
 * Called when someone wins an ultiduo round
 * --------------------------------------------------------------------------- */
-public void EndKoth(any arena_index, any winner_team)
+void EndKoth(any arena_index, any winner_team)
 {
 
     PlayEndgameSoundsToArena(arena_index, winner_team);
@@ -5611,8 +5676,8 @@ public void EndKoth(any arena_index, any winner_team)
 
     if (g_bFourPersonArena[arena_index])
     {
-        client_teammate = getTeammate(client, client_slot, arena_index);
-        foe_teammate = getTeammate(foe, foe_slot, arena_index);
+        client_teammate = getTeammate(client_slot, arena_index);
+        foe_teammate = getTeammate(foe_slot, arena_index);
     }
 
     if (fraglimit > 0 && g_iArenaScore[arena_index][winner_team] >= fraglimit && g_iArenaStatus[arena_index] >= AS_FIGHT && g_iArenaStatus[arena_index] < AS_REPORTED)
@@ -5699,7 +5764,7 @@ public void EndKoth(any arena_index, any winner_team)
 *
 * Called when a round starts to reset medics ubercharge
 * --------------------------------------------------------------------------- */
-public void ResetArena(int arena_index)
+void ResetArena(int arena_index)
 {
     //Tell the game this was a forced suicide and it shouldn't do anything about it
 
@@ -5723,7 +5788,7 @@ public void ResetArena(int arena_index)
 *
 * Called when players want to swap classes in an ultiduo arena
 * --------------------------------------------------------------------------- */
-public void swapClasses(int client, int client_teammate)
+void swapClasses(int client, int client_teammate)
 {
 
     TFClassType client_class = g_tfctPlayerClass[client];
@@ -5743,7 +5808,7 @@ public void swapClasses(int client, int client_teammate)
 *
 * Returns of a player on the other team is touching the point
 * --------------------------------------------------------------------------- */
-public bool EnemyTeamTouching(any team, any arena_index)
+bool EnemyTeamTouching(any team, any arena_index)
 {
     if (team == TEAM_RED)
     {
@@ -5766,7 +5831,7 @@ public bool EnemyTeamTouching(any team, any arena_index)
 }
 
 
-public void PlayEndgameSoundsToArena(any arena_index, any winner_team)
+void PlayEndgameSoundsToArena(any arena_index, any winner_team)
 {
     int red_1 = g_iArenaQueue[arena_index][SLOT_ONE];
     int blu_1 = g_iArenaQueue[arena_index][SLOT_TWO];
@@ -5808,7 +5873,7 @@ public void PlayEndgameSoundsToArena(any arena_index, any winner_team)
     }
 }
 
-public Action Command_Koth(int client, int args)
+Action Command_Koth(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -5854,7 +5919,7 @@ public Action Command_Koth(int client, int args)
     return Plugin_Handled;
 }
 
-public Action Command_Mge(int client, int args)
+Action Command_Mge(int client, int args)
 {
     if (!IsValidClient(client))
         return Plugin_Continue;
@@ -5890,7 +5955,7 @@ public Action Command_Mge(int client, int args)
     return Plugin_Handled;
 }
 
-public void UpdateArenaName(int arena)
+void UpdateArenaName(int arena)
 {
     char mode[4], type[8];
     Format(mode, sizeof(mode), "%s", g_bFourPersonArena[arena] ? "2v2" : "1v1");
