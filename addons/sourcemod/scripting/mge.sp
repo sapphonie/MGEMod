@@ -2991,22 +2991,17 @@ public Action Command_Menu(int client, int args)
 
         // Was the argument an arena name?
         GetCmdArgString(sArg, sizeof(sArg));
-        int count;
         int found_arena;
-        for (int i = 1; i <= g_iArenaCount; i++)
+        for(int i = 1; i <= g_iArenaCount; i++)
         {
-            if (StrContains(g_sArenaName[i], sArg, false) >= 0)
+            if(StrContains(g_sArenaName[i], sArg, false) >= 0)
             {
-                count++;
-                found_arena = i;
-                if (count > 1)
-                {
-                    ShowMainMenu(client);
-                    return Plugin_Handled;
+                if (g_iArenaStatus[i] == AS_IDLE) {
+                    found_arena = i;
+                    break;
                 }
             }
         }
-
         // If there was only one string match, and it was a valid match, place the player in that arena if they aren't already in it.
         if (found_arena > 0 && found_arena <= g_iArenaCount && found_arena != g_iPlayerArena[client])
         {
