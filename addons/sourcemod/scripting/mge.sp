@@ -7,7 +7,7 @@
 #include <sdkhooks>
 #include <morecolors>
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "3.0.3"
+#define PL_VERSION "3.0.4-beta"
 #define MAXARENAS 63
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
@@ -348,12 +348,6 @@ public void OnPluginStart()
     // Parse default list of allowed classes.
     ParseAllowedClasses("", g_tfctClassAllowed);
 
-    // Only connect to the SQL DB if stats are enabled.
-    if (!g_bNoStats)
-    {
-        PrepareSQL();
-    }
-
     // Hook convar changes.
     gcvar_spawnFile.AddChangeHook(handler_ConVarChange);
     gcvar_fragLimit.AddChangeHook(handler_ConVarChange);
@@ -429,6 +423,19 @@ public void OnPluginStart()
         }
     }
 }
+
+public void OnConfigsExecuted()
+{
+    // Only connect to the SQL DB if stats are enabled.
+    // This is here so we don't have a race condition where we load from sqlite no matter what since we don't wait until db cfg is set.
+    // Most of the rest of the cvar checking logic in this plugin needs moved here too.
+    if (!g_bNoStats)
+    {
+        PrepareSQL();
+    }
+}
+
+
 
 /* OnMapStart()
 *
