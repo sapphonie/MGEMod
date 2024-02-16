@@ -7,7 +7,7 @@
 #include <sdkhooks>
 #include <morecolors>
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "3.0.3"
+#define PL_VERSION "3.0.4"
 #define MAXARENAS 63
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
