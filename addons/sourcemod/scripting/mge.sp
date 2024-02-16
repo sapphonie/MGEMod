@@ -7,7 +7,7 @@
 #include <sdkhooks>
 #include <morecolors>
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "3.0.4-beta"
+#define PL_VERSION "3.0.5"
 #define MAXARENAS 63
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
@@ -192,7 +192,6 @@ int
 bool g_tfctArenaAllowedClasses[MAXARENAS + 1][10];
 
 // Player vars
-Handle g_hWelcomeTimer      [MAXPLAYERS + 1];
 char g_sPlayerSteamID       [MAXPLAYERS + 1][32]; //saving steamid
 
 bool
@@ -603,7 +602,7 @@ public void OnClientPostAdminCheck(int client)
         g_bHitBlip[client] = false;
         g_bShowHud[client] = true;
         g_bPlayerRestoringAmmo[client] = false;
-        g_hWelcomeTimer[client] = CreateTimer(15.0, Timer_WelcomePlayer, GetClientUserId(client));
+        CreateTimer(15.0, Timer_WelcomePlayer, GetClientUserId(client));
 
         if (!g_bNoStats)
         {
@@ -742,11 +741,6 @@ public void OnClientDisconnect(int client)
             }
             g_iArenaQueue[arena_index][after_leaver_slot - 1] = 0;
         }
-    }
-
-    if (g_hWelcomeTimer[client] != null)
-    {
-        delete g_hWelcomeTimer[client];
     }
 }
 
@@ -1422,7 +1416,9 @@ void ShowCountdownToSpec(int arena_index, char[] text)
 void ShowPlayerHud(int client)
 {
     if (!IsValidClient(client))
+    {
         return;
+    }
 
     // HP
     int arena_index = g_iPlayerArena[client];
@@ -1441,35 +1437,49 @@ void ShowPlayerHud(int client)
 
     if (g_bArenaKoth[arena_index])
     {
-        if (g_iArenaStatus[arena_index] == AS_FIGHT || true)
+        /* if (g_iArenaStatus[arena_index] == AS_FIGHT || true) */
         {
             //Show the red team timer, if they have it capped make the timer red
             if (g_iPointState[arena_index] == TEAM_RED)
+            {
                 SetHudTextParams(0.40, 0.01, HUDFADEOUTTIME, 255, 0, 0, 255); // Red
+            }
             else
+            {
                 SetHudTextParams(0.40, 0.01, HUDFADEOUTTIME, 255, 255, 255, 255);
+            }
 
             //Set the Text for the timer
             ShowSyncHudText(client, hm_KothTimerRED, "%i:%02i", g_iKothTimer[arena_index][TEAM_RED] / 60, g_iKothTimer[arena_index][TEAM_RED] % 60);
 
             //Show the blue team timer, if they have it capped make the timer blue
             if (g_iPointState[arena_index] == TEAM_BLU)
+            {
                 SetHudTextParams(0.60, 0.01, HUDFADEOUTTIME, 0, 0, 255, 255); // Blue
+            }
             else
+            {
                 SetHudTextParams(0.60, 0.01, HUDFADEOUTTIME, 255, 255, 255, 255);
+            }
             //Set the Text for the timer
             ShowSyncHudText(client, hm_KothTimerBLU, "%i:%02i", g_iKothTimer[arena_index][TEAM_BLU] / 60, g_iKothTimer[arena_index][TEAM_BLU] % 60);
 
             //Show the capture point percent
             //set it red if red team is capping
             if (g_iCappingTeam[arena_index] == TEAM_RED)
+            {
                 SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 255, 0, 0, 255); // Red
+            }
             //Set it blue if blu team is capping
             else if (g_iCappingTeam[arena_index] == TEAM_BLU)
+            {
                 SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 0, 0, 255, 255); // Blue
+            }
             //Set it white if no one is capping
             else
+            {
                 SetHudTextParams(0.50, 0.80, HUDFADEOUTTIME, 255, 255, 255, 255);
+            }
             //Show the text
             ShowSyncHudText(client, hm_KothCap, "Point Capture: %.1f", g_fKothCappedPercent[arena_index]);
         }
@@ -1480,14 +1490,26 @@ void ShowPlayerHud(int client)
     {
         float hp_ratio = ((float(g_iPlayerHP[client])) / (float(g_iPlayerMaxHP[client]) * g_fArenaHPRatio[arena_index]));
         if (hp_ratio > 0.66)
+        {
             SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 0, 255, 0, 255); // Green
+        }
         else if (hp_ratio >= 0.33)
+        {
             SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255, 255, 0, 255); // Yellow
+        }
         else if (hp_ratio < 0.33)
+        {
             SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255, 0, 0, 255); // Red
-
+        }
+        else // SANITY
+        {
+            SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255, 255, 255, 255); // White
+        }
         ShowSyncHudText(client, hm_HP, "Health : %d", g_iPlayerHP[client]);
-    } else {
+    }
+    else
+    {
+        SetHudTextParams(0.01, 0.80, HUDFADEOUTTIME, 255, 255, 255, 255); // White
         ShowSyncHudText(client, hm_HP, "", g_iPlayerHP[client]);
     }
 
@@ -1498,14 +1520,24 @@ void ShowPlayerHud(int client)
         if (g_iArenaStatus[arena_index] == AS_FIGHT)
         {
             if (g_bPlayerHasIntel[client])
+            {
                 ShowSyncHudText(client, hm_HP, "You have the intel!", g_iPlayerHP[client]);
+            }
             else if (g_bFourPersonArena[arena_index] && g_bPlayerHasIntel[client_teammate])
+            {
                 ShowSyncHudText(client, hm_HP, "Your teammate has the intel!", g_iPlayerHP[client]);
+            }
             else if (g_bPlayerHasIntel[client_foe] || (g_bFourPersonArena[arena_index] && g_bPlayerHasIntel[client_foe2]))
+            {
                 ShowSyncHudText(client, hm_HP, "Enemy has the intel!", g_iPlayerHP[client]);
+            }
             else
+            {
                 ShowSyncHudText(client, hm_HP, "Get the intel!", g_iPlayerHP[client]);
-        } else {
+            }
+        }
+        else
+        {
             ShowSyncHudText(client, hm_HP, "", g_iPlayerHP[client]);
         }
     }
@@ -1513,7 +1545,9 @@ void ShowPlayerHud(int client)
     // We want ammomod players to be able to see what their health is, even when they have the text hud turned off.
     // We also want to show them BBALL notifications
     if (!g_bShowHud[client])
+    {
         return;
+    }
 
     // Score
     SetHudTextParams(0.01, 0.01, HUDFADEOUTTIME, 255, 255, 255, 255);
@@ -4524,13 +4558,14 @@ Action Timer_WelcomePlayer(Handle timer, int userid)
     int client = GetClientOfUserId(userid);
 
     if (!IsValidClient(client))
+    {
         return Plugin_Continue;
+    }
 
     MC_PrintToChat(client, "%t", "Welcome1", PL_VERSION);
     if (StrContains(g_sMapName, "mge_", false) == 0)
         MC_PrintToChat(client, "%t", "Welcome2");
     MC_PrintToChat(client, "%t", "Welcome3");
-    g_hWelcomeTimer[client] = null;
 
     return Plugin_Continue;
 }
@@ -5777,16 +5812,30 @@ void ResetArena(int arena_index)
 
     int maxSlots;
     if (g_bFourPersonArena[arena_index])
+    {
         maxSlots = SLOT_FOUR;
+    }
     else
+    {
         maxSlots = SLOT_TWO;
+    }
 
     for (int i = SLOT_ONE; i <= maxSlots; ++i)
     {
-        if (IsValidClient(g_iArenaQueue[arena_index][i]) && IsPlayerAlive(g_iArenaQueue[arena_index][i]) && (g_tfctPlayerClass[g_iArenaQueue[arena_index][i]] == TF2_GetClass("medic")))
+        int thisClient = g_iArenaQueue[arena_index][i];
+        if
+        (
+               IsValidClient(thisClient)
+            && IsPlayerAlive(thisClient)
+            && TF2_GetPlayerClass(thisClient) == TFClass_Medic
+        )
         {
-            int index = GetPlayerWeaponSlot(g_iArenaQueue[arena_index][i], 1);
-            SetEntPropFloat(index, Prop_Send, "m_flChargeLevel", 0.0);
+            // medigun
+            int medigunIndex = GetPlayerWeaponSlot(thisClient, TFWeaponSlot_Secondary);
+            if (IsValidEntity(medigunIndex))
+            {
+                SetEntPropFloat(medigunIndex, Prop_Send, "m_flChargeLevel", 0.0);
+            }
         }
     }
 }
