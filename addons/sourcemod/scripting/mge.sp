@@ -5820,11 +5820,11 @@ void ResetArena(int arena_index)
         (
                IsValidClient(thisClient)
             && IsPlayerAlive(thisClient)
-            && g_tfctPlayerClass[thisClient] == TF2_GetClass("medic")
+            && TF2_GetPlayerClass(thisClient) == TFClass_Medic
         )
         {
             // medigun
-            int medigunIndex = GetPlayerWeaponSlot(thisClient, 1);
+            int medigunIndex = GetPlayerWeaponSlot(thisClient, TFWeaponSlot_Secondary);
             if (IsValidEntity(medigunIndex))
             {
                 SetEntPropFloat(medigunIndex, Prop_Send, "m_flChargeLevel", 0.0);
