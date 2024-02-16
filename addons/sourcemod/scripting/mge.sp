@@ -192,7 +192,6 @@ int
 bool g_tfctArenaAllowedClasses[MAXARENAS + 1][10];
 
 // Player vars
-Handle g_hWelcomeTimer      [MAXPLAYERS + 1];
 char g_sPlayerSteamID       [MAXPLAYERS + 1][32]; //saving steamid
 
 bool
@@ -596,7 +595,7 @@ public void OnClientPostAdminCheck(int client)
         g_bHitBlip[client] = false;
         g_bShowHud[client] = true;
         g_bPlayerRestoringAmmo[client] = false;
-        g_hWelcomeTimer[client] = CreateTimer(15.0, Timer_WelcomePlayer, GetClientUserId(client));
+        CreateTimer(15.0, Timer_WelcomePlayer, GetClientUserId(client));
 
         if (!g_bNoStats)
         {
@@ -735,11 +734,6 @@ public void OnClientDisconnect(int client)
             }
             g_iArenaQueue[arena_index][after_leaver_slot - 1] = 0;
         }
-    }
-
-    if (g_hWelcomeTimer[client] != null)
-    {
-        delete g_hWelcomeTimer[client];
     }
 }
 
@@ -4557,13 +4551,14 @@ Action Timer_WelcomePlayer(Handle timer, int userid)
     int client = GetClientOfUserId(userid);
 
     if (!IsValidClient(client))
+    {
         return Plugin_Continue;
+    }
 
     MC_PrintToChat(client, "%t", "Welcome1", PL_VERSION);
     if (StrContains(g_sMapName, "mge_", false) == 0)
         MC_PrintToChat(client, "%t", "Welcome2");
     MC_PrintToChat(client, "%t", "Welcome3");
-    g_hWelcomeTimer[client] = null;
 
     return Plugin_Continue;
 }
