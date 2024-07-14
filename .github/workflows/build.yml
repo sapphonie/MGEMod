@@ -34,11 +34,7 @@ jobs:
       run: |
         cd maps
         wget "http://dl.serveme.tf/maps/mge_chillypunch_final4_fix2.bsp" || exit 1
-        wget "https://fastdl.triumphtf2.com/maps/mge_triumph_beta6_rc2.bsp.bz2" || exit 1
         echo "eae52bc16d6cb872938e67b4fc9b845c9f227e5d444614254465fe6530480a0e mge_chillypunch_final4_fix2.bsp" | sha256sum -c || exit 2
-        echo "b7c06e2a57de80a87e5f873b8acfd366528649a9b4a72a372dda6584f694a7f3 mge_triumph_beta6_rc2.bsp.bz2" | sha256sum -c || exit 2
-        bunzip2 mge_triumph_beta6_rc2.bsp.bz2 || exit 3
-        echo "1d1f89ebf352969cf5ff9cd0037e480062a9aa6f617f2229d00d8e7cacd97739 mge_triumph_beta6_rc2.bsp" | sha256sum -c || exit 2
 
 
     - name: Zip packages
