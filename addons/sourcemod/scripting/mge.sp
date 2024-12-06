@@ -3787,7 +3787,7 @@ void PrepareSQL() // Opens the connection to the database, and creates the table
 {
     char error[256];
 
-    if (SQL_CheckConfig(g_sDBConfig))
+    if (db == null && SQL_CheckConfig(g_sDBConfig))
         db = SQL_Connect(g_sDBConfig, true, error, sizeof(error));
 
     if (db == null)
