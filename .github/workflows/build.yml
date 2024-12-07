@@ -33,7 +33,7 @@ jobs:
     - name: Download maps that are too large to put on github
       run: |
         cd maps
-        wget "http://dl.serveme.tf/maps/mge_chillypunch_final4_fix2.bsp" || exit 1
+        wget "https://sappho.io/files/tf/maps/mge_chillypunch_final4_fix2.bsp" || exit 1
         echo "eae52bc16d6cb872938e67b4fc9b845c9f227e5d444614254465fe6530480a0e mge_chillypunch_final4_fix2.bsp" | sha256sum -c || exit 2
 
 
