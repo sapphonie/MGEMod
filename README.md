@@ -16,5 +16,3 @@ For more info on MGEMod, see its AlliedMods thread and its TF2Wiki page.
 
 ## What happened to the old repo?
 - The developer, Alex, who went by "Lange", privated all of their GitHub repositories a while ago, including MGE and SOAP-DM. This necessitated a new repository, aka this one.
-
-They have unprivated them, and you can find the original unmaintained version of MGE [here](https://github.com/alvancamp/MGEMod).
