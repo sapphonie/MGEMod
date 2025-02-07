@@ -1,6 +1,12 @@
 #pragma semicolon 1 // Force strict semicolon mode.
 #pragma newdecls required
 
+// hack for unrestricted maxplayers. sorry.
+#if defined (MAXPLAYERS)
+    #undef MAXPLAYERS
+    #define MAXPLAYERS 101
+#endif
+
 // ====[ INCLUDES ]====================================================
 #include <sourcemod>
 #include <tf2_stocks>
