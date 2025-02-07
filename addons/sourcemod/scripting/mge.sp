@@ -13,7 +13,7 @@
 #include <sdkhooks>
 #include <morecolors>
 // ====[ CONSTANTS ]===================================================
-#define PL_VERSION "3.0.8"
+#define PL_VERSION "3.0.9"
 #define MAXARENAS 63
 #define MAXSPAWNS 15
 #define HUDFADEOUTTIME 120.0
@@ -81,7 +81,7 @@ Handle
     hm_KothCap;
 
 // Global Variables
-char g_sMapName[64],
+char g_sMapName[256],
      g_spawnFile[128];
 
 bool g_bBlockFallDamage,
@@ -462,7 +462,7 @@ public void OnMapStart()
     g_bNoStats = gcvar_stats.BoolValue ? false : true; /* Reset this variable, since it is forced to false during Event_WinPanel */
 
     // Spawns
-    int isMapAm = LoadSpawnPoints();
+    bool isMapAm = LoadSpawnPoints();
     if (isMapAm)
     {
         for (int i = 0; i <= g_iArenaCount; i++)
@@ -2289,6 +2289,20 @@ bool LoadSpawnPoints()
 
     char spawn[64];
     GetCurrentMap(g_sMapName, sizeof(g_sMapName));
+
+    //  "workshop/mge_training_v8_beta4b.ugc1996603816"
+    if (StrContains(g_sMapName, "workshop/", false) != -1)
+    {
+        char nonWorkshopName[256];
+        if (!GetMapDisplayName(g_sMapName, nonWorkshopName, sizeof(nonWorkshopName)))
+        {
+            LogError("Failed to convert workshop map name %s to pretty name! This map will probably not work!");
+        }
+        else
+        {
+            strcopy(g_sMapName, sizeof(g_sMapName), nonWorkshopName);
+        }
+    }
 
     KeyValues kv = new KeyValues("SpawnConfig");
 
