@@ -1131,8 +1131,8 @@ Action OnTouchHoop(int entity, int other)
 
             if (g_bFourPersonArena[arena_index])
             {
-                char client_teammate_name[128];
-                char foe_teammate_name[128];
+                char client_teammate_name[256];
+                char foe_teammate_name[256];
 
                 GetClientName(client_teammate, client_teammate_name, sizeof(client_teammate_name));
                 GetClientName(foe_teammate, foe_teammate_name, sizeof(foe_teammate_name));
@@ -1433,7 +1433,7 @@ void ShowPlayerHud(int client)
     int client_foe = (g_iArenaQueue[g_iPlayerArena[client]][(g_iPlayerSlot[client] == SLOT_ONE || g_iPlayerSlot[client] == SLOT_THREE) ? SLOT_TWO : SLOT_ONE]); //test
     int client_teammate;
     int client_foe2;
-    char hp_report[128];
+    char hp_report[256];
 
     if (g_bFourPersonArena[arena_index])
     {
@@ -1557,7 +1557,7 @@ void ShowPlayerHud(int client)
 
     // Score
     SetHudTextParams(0.01, 0.01, HUDFADEOUTTIME, 255, 255, 255, 255);
-    char report[128];
+    char report[256];
     int fraglimit = g_iArenaFraglimit[arena_index];
 
     if (g_bArenaBBall[arena_index])
@@ -1672,7 +1672,7 @@ void ShowSpecHudToClient(int client)
         blu_f2 = g_iArenaQueue[arena_index][SLOT_FOUR];
     }
 
-    char hp_report[128];
+    char hp_report[256];
 
     //If its a 2v2 arena show the teamates hp's
     if (g_bFourPersonArena[arena_index])
@@ -1704,7 +1704,7 @@ void ShowSpecHudToClient(int client)
     ShowSyncHudText(client, hm_HP, hp_report);
 
     // Score
-    char report[128];
+    char report[256];
     SetHudTextParams(0.01, 0.01, HUDFADEOUTTIME, 255, 255, 255, 255);
 
     int fraglimit = g_iArenaFraglimit[arena_index];
@@ -2733,7 +2733,7 @@ void ShowMainMenu(int client, bool listplayers = true)
     menu.ExitButton = true;
     menu.Display(client, 0);
 
-    char report[128];
+    char report[256];
 
     //listing players
     if (!listplayers)
@@ -4244,16 +4244,16 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
     if (g_iArenaStatus[arena_index] >= AS_FIGHT && g_iArenaStatus[arena_index] < AS_REPORTED && fraglimit > 0 && g_iArenaScore[arena_index][killer_team_slot] >= fraglimit)
     {
         g_iArenaStatus[arena_index] = AS_REPORTED;
-        char killer_name[128];
-        char victim_name[128];
+        char killer_name[256];
+        char victim_name[256];
         GetClientName(killer, killer_name, sizeof(killer_name));
         GetClientName(victim, victim_name, sizeof(victim_name));
 
 
         if (g_bFourPersonArena[arena_index])
         {
-            char killer_teammate_name[128];
-            char victim_teammate_name[128];
+            char killer_teammate_name[256];
+            char victim_teammate_name[256];
 
             GetClientName(killer_teammate, killer_teammate_name, sizeof(killer_teammate_name));
             GetClientName(victim_teammate, victim_teammate_name, sizeof(victim_teammate_name));
@@ -4372,6 +4372,7 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
                 //Should there be a 3 second count down in between rounds in 2v2 or just spawn and go?
                 //Timer_NewRound would create a 3 second count down where as just reseting all the players would make it just go
+
                 /*
                 if (killer)
                     ResetPlayer(killer);
@@ -4384,10 +4385,9 @@ Action Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
                 g_iArenaStatus[arena_index] = AS_FIGHT;
                 */
-                CreateTimer(0.1, Timer_NewRound, arena_index);
+                // CreateTimer(0.1, Timer_NewRound, arena_index);
+                CreateTimer(0.1, Timer_New2v2Round, arena_index);
             }
-
-
         }
 
 
@@ -4963,6 +4963,23 @@ Action Timer_Tele(Handle timer, int userid)
 Action Timer_NewRound(Handle timer, any arena_index)
 {
     StartCountDown(arena_index);
+
+    return Plugin_Continue;
+}
+
+Action Timer_New2v2Round(Handle timer, any arena_index) {
+    int red_f1 = g_iArenaQueue[arena_index][SLOT_ONE]; /* Red (slot one) player. */
+    int blu_f1 = g_iArenaQueue[arena_index][SLOT_TWO]; /* Blu (slot two) player. */
+
+    int red_f2 = g_iArenaQueue[arena_index][SLOT_THREE]; /* 2nd Red (slot three) player. */
+    int blu_f2 = g_iArenaQueue[arena_index][SLOT_FOUR]; /* 2nd Blu (slot four) player. */
+
+    if (red_f1) ResetPlayer(red_f1);
+    if (blu_f1) ResetPlayer(blu_f1);
+    if (red_f2) ResetPlayer(red_f2);
+    if (blu_f2) ResetPlayer(blu_f2);
+
+    g_iArenaStatus[arena_index] = AS_FIGHT;
 
     return Plugin_Continue;
 }
@@ -5768,8 +5785,8 @@ void EndKoth(any arena_index, any winner_team)
 
         if (g_bFourPersonArena[arena_index])
         {
-            char client_teammate_name[128];
-            char foe_teammate_name[128];
+            char client_teammate_name[256];
+            char foe_teammate_name[256];
 
             GetClientName(client_teammate, client_teammate_name, sizeof(client_teammate_name));
             GetClientName(foe_teammate, foe_teammate_name, sizeof(foe_teammate_name));
